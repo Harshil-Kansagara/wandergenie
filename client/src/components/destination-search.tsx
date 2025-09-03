@@ -11,14 +11,14 @@ interface LatLng {
   longitude: number;
 }
 
-interface DestinationData {
+export interface DestinationData {
   description: string;
   latLng?: LatLng;
 }
 
 interface DestinationSearchProps {
   placeholder?: string;
-  value?: string; // This might be just the description initially
+  value?: string; 
   onChange?: (value: DestinationData) => void;
   className?: string;
   "data-testid"?: string;
@@ -28,6 +28,13 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
   const [inputValue, setInputValue] = useState(value);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState("");
+
+  // Synchronize internal input value with external value prop
+  useEffect(() => {
+    if (value !== inputValue) {
+      setInputValue(value);
+    }
+  }, [value]);
 
   // Debounce input
   useEffect(() => {
@@ -40,14 +47,23 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
 
   const fetchPlacesAutocomplete = async ({ queryKey }: { queryKey: any }) => {
     const [, params] = queryKey;
-    const input = params.input;
-
-    if (!input) {
-      return { predictions: [] };
-    }
+    const input = params;
     
-    const response = await apiRequest("POST", "/api/places/autocomplete", { input });
-    return response.json();
+    // if (!input) {
+    //   return { predictions: [] };
+    // }
+    
+    try {
+     
+      const inputData={input};
+      const response = await apiRequest("POST", "/api/places/autocomplete", inputData);
+      const jsonResponse = await response.json();
+      console.log(jsonResponse)
+      return jsonResponse;
+    } catch (error) {
+      console.error("Error in fetchPlacesAutocomplete API request:", error);
+      throw error;
+    }
   };
 
   const { data } = useQuery({
@@ -63,11 +79,10 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const newValue = e.target.value;
     setInputValue(newValue);
     setShowSuggestions(newValue.length > 2);
-    onChange?.({ description: newValue, latLng: undefined }); // Clear latLng on manual input change
+    onChange?.({ description: newValue, latLng: undefined }); 
   };
 
   const handleSelectSuggestion = (suggestion: any) => {
-    // Directly use latLng from the autocomplete suggestion, if available
     const description = suggestion.description; 
     const latLng = suggestion.latLng;
 

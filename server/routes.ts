@@ -7,7 +7,7 @@ import axios from "axios"; // Import axios
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
 const genai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "default_key"
+  apiKey: "AIzaSyCcHwqvZgV18sqXxtmbzWWPy-0x40YjVUg"
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Destination is required for route calculation" });
       }
 
-      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY; // Ensure you have this env var set
+      const googleMapsApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"; // Ensure you have this env var set
 
       if (!googleMapsApiKey) {
         console.error("GOOGLE_MAPS_API_KEY is not set in environment variables.");
@@ -224,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Input required" });
       }
 
-      const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY; // Using environment variable
+      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"; // Using environment variable
       console.log("GOOGLE_PLACES_API_KEY for autocomplete:", googlePlacesApiKey); // Log API key
 
       if (!googlePlacesApiKey) {
@@ -249,14 +249,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': googlePlacesApiKey,
           // Requesting comprehensive fields for structured formatting and location
-          'X-Goog-FieldMask': 'suggestions.placePrediction.place.displayName,suggestions.placePrediction.place.formattedAddress,suggestions.placePrediction.place.location,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat.mainText,suggestions.placePrediction.structuredFormat.secondaryText'
+          'X-Goog-FieldMask': '*'
         }
       });
 
       const formattedPredictions = response.data.suggestions?.map((suggestion: any) => ({
         place_id: suggestion.placePrediction.placeId,
         // Use the full text for description initially
-        description: suggestion.placePrediction.text?.text || suggestion.placePrediction.place?.displayName?.text || "",
+        description: suggestion.placePrediction.text?.text || "",
         structured_formatting: {
           // Prioritize structured format if available, otherwise fallback to main text
           main_text: suggestion.placePrediction.structuredFormat?.mainText?.text || suggestion.placePrediction.text?.text || suggestion.placePrediction.place?.displayName?.text || "",
@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Place ID is required" });
       }
 
-      const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY;
+      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc";
       if (!googlePlacesApiKey) {
         return res.status(500).json({ error: "Server API key not configured." });
       }

@@ -14,7 +14,7 @@ import { ChevronDown, Wand2 } from "lucide-react";
 import { tripPlanningSchema, type TripPlanningRequest } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import DestinationSearch from "./destination-search";
+import DestinationSearch, { DestinationData } from "./destination-search"; // Import DestinationData
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
 
