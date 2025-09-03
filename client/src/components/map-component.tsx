@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Satellite, MapIcon } from "lucide-react";
+import { Plus, Minus, MapIcon } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
 interface LatLng {
@@ -24,22 +24,28 @@ export default function MapComponent({ destination, waypoints = [], className }:
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const [zoom, setZoom] = useState(10);
-  const [viewMode, setViewMode] = useState<'roadmap' | 'satellite'>('roadmap');
   const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const [markerLibrary, setMarkerLibrary] = useState<google.maps.MarkerLibrary | null>(null);
 
   useEffect(() => {
     if (window.google && mapRef.current) {
+      window.google.maps.importLibrary("marker").then((lib) => {
+        setMarkerLibrary(lib as google.maps.MarkerLibrary);
+      });
+
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 0, lng: 0 }, // Default center, will be updated by route
+        center: { lat: 0, lng: 0 },
         zoom: zoom,
-        mapTypeId: viewMode,
+        mapId: "7b496358553ccbbfdedec4d8", 
+        mapTypeId: 'roadmap',
         fullscreenControl: false,
         streetViewControl: false,
         mapTypeControl: false,
       });
 
       polylineRef.current = new window.google.maps.Polyline({
-        strokeColor: '#8B5CF6', // Primary color
+        strokeColor: '#8B5CF6',
         strokeOpacity: 0.8,
         strokeWeight: 6,
         map: mapInstance.current,
@@ -50,8 +56,9 @@ export default function MapComponent({ destination, waypoints = [], className }:
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
       }
+      markersRef.current.forEach(marker => marker.map = null);
     };
-  }, []); // Initialize map once
+  }, []);
 
   useEffect(() => {
     if (mapInstance.current) {
@@ -60,27 +67,57 @@ export default function MapComponent({ destination, waypoints = [], className }:
   }, [zoom]);
 
   useEffect(() => {
-    if (mapInstance.current) {
-      mapInstance.current.setMapTypeId(viewMode);
+    if (markerLibrary) {
+      calculateAndDisplayRoute();
+      updateMarkers();
     }
-  }, [viewMode]);
+  }, [destination, waypoints, markerLibrary]);
 
-  useEffect(() => {
-    calculateAndDisplayRoute();
-  }, [destination, waypoints]); // Recalculate route when destination or waypoints change
+  const updateMarkers = () => {
+    if (!mapInstance.current || !markerLibrary) return;
+
+    markersRef.current.forEach(marker => marker.map = null);
+    markersRef.current = [];
+
+    const allPoints = [...waypoints, destination];
+
+    allPoints.forEach(point => {
+      if (point.latLng) {
+        const lat = parseFloat(point.latLng.latitude as any);
+        const lng = parseFloat(point.latLng.longitude as any);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const marker = new markerLibrary.AdvancedMarkerElement({
+            position: { lat, lng },
+            map: mapInstance.current,
+            title: 'location' in point ? point.location : point.description,
+          });
+          markersRef.current.push(marker);
+        }
+      }
+    });
+  };
 
   const calculateAndDisplayRoute = async () => {
     if (!destination.latLng) {
       console.error("Destination coordinates are missing.");
       return;
     }
+    
+    const originLat = parseFloat(destination.latLng.latitude as any);
+    const originLng = parseFloat(destination.latLng.longitude as any);
 
-    const origin = waypoints.length > 0 && waypoints[0].latLng ? waypoints[0].latLng : destination.latLng;
+    if (isNaN(originLat) || isNaN(originLng)) {
+        console.error("Invalid destination coordinates.");
+        return;
+    }
+
+    const origin = { latitude: originLat, longitude: originLng };
+
     const destinationCoord = destination.latLng;
 
     const intermediateWaypoints = waypoints.slice(1).filter(wp => wp.latLng).map(wp => ({
-      latLng: wp.latLng,
-      stopover: true,
+      location: { latLng: { latitude: parseFloat(wp.latLng!.latitude as any), longitude: parseFloat(wp.latLng!.longitude as any)} },
     }));
 
     try {
@@ -92,7 +129,7 @@ export default function MapComponent({ destination, waypoints = [], className }:
         body: JSON.stringify({
           origin: origin,
           destination: destinationCoord,
-          waypoints: intermediateWaypoints,
+          intermediates: intermediateWaypoints,
         }),
       });
 
@@ -161,18 +198,8 @@ export default function MapComponent({ destination, waypoints = [], className }:
       <div className="flex items-center justify-between p-4 bg-card">
         <div className="flex items-center space-x-4">
           <Button
-            variant={viewMode === 'satellite' ? 'default' : 'ghost'}
+            variant={'default'}
             size="sm"
-            onClick={() => setViewMode('satellite')}
-            data-testid="button-satellite-view"
-          >
-            <Satellite className="h-4 w-4 mr-2" />
-            {t('satellite')}
-          </Button>
-          <Button
-            variant={viewMode === 'roadmap' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('roadmap')}
             data-testid="button-map-view"
           >
             <MapIcon className="h-4 w-4 mr-2" />

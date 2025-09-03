@@ -60,12 +60,6 @@ export default function Home() {
                 <Link href="/planner" className="text-muted-foreground hover:text-foreground smooth-transition">
                   {t('experiences')}
                 </Link>
-                <Link href="#" className="text-muted-foreground hover:text-foreground smooth-transition">
-                  {t('hotels')}
-                </Link>
-                <Link href="#" className="text-muted-foreground hover:text-foreground smooth-transition">
-                  {t('flights')}
-                </Link>
               </nav>
             </div>
             
