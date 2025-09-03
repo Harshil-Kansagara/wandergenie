@@ -3,13 +3,16 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { tripPlanningSchema, insertTripSchema } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
+import axios from "axios"; // Import axios
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
-const genai = new GoogleGenAI({ 
+const genai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || "default_key"
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  console.log("Server started. NODE_ENV:", process.env.NODE_ENV); // Added log for NODE_ENV
+
   // Generate AI itinerary
   app.post("/api/generate-itinerary", async (req, res) => {
     try {
@@ -158,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const destinations = await storage.getPopularDestinations();
       res.json(destinations);
-    } catch (error: any) {
+    }    catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -245,21 +248,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Input required" });
       }
 
-      // Mock places data - in production, use Google Places API
-      const mockPlaces = [
-        { place_id: "1", description: `${input}, France`, structured_formatting: { main_text: input, secondary_text: "France" } },
-        { place_id: "2", description: `${input}, USA`, structured_formatting: { main_text: input, secondary_text: "USA" } },
-        { place_id: "3", description: `${input}, UK`, structured_formatting: { main_text: input, secondary_text: "UK" } },
-        { place_id: "4", description: `${input}, Japan`, structured_formatting: { main_text: input, secondary_text: "Japan" } },
-        { place_id: "5", description: `${input}, Italy`, structured_formatting: { main_text: input, secondary_text: "Italy" } }
-      ];
+      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"
+      console.log("Server-side GOOGLE_PLACES_API_KEY:", googlePlacesApiKey); // Added log
+      if (!googlePlacesApiKey) {
+        console.warn("GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete.");
+        // Fallback to mock data if API key is not set
+        const mockPlaces = [
+          { place_id: "1", description: `${input}, France`, structured_formatting: { main_text: input, secondary_text: "France" } },
+          { place_id: "2", description: `${input}, USA`, structured_formatting: { main_text: input, secondary_text: "USA" } },
+          { place_id: "3", description: `${input}, UK`, structured_formatting: { main_text: input, secondary_text: "UK" } },
+          { place_id: "4", description: `${input}, Japan`, structured_formatting: { main_text: input, secondary_text: "Japan" } },
+          { place_id: "5", description: `${input}, Italy`, structured_formatting: { main_text: input, secondary_text: "Italy" } }
+        ];
+        return res.json({
+          predictions: mockPlaces,
+          status: "OK"
+        });
+      }
 
-      res.json({
-        predictions: mockPlaces,
-        status: "OK"
-      });
+      const placesApiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${input}&key=${googlePlacesApiKey}`;
+      const response = await axios.get(placesApiUrl);
+
+      res.json(response.data);
+
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      console.error("Error fetching places autocomplete:", error);
+      res.status(500).json({ error: "Failed to fetch place suggestions: " + error.message });
     }
   });
 

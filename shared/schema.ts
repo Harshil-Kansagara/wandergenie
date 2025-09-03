@@ -18,7 +18,7 @@ export const trips = pgTable("trips", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
   title: text("title").notNull(),
-  origin: text("origin").notNull(),
+  origin: text("origin"), // Made origin nullable
   destination: text("destination").notNull(),
   startDate: text("start_date").notNull(),
   endDate: text("end_date").notNull(),
@@ -98,7 +98,7 @@ export type Booking = typeof bookings.$inferSelect;
 
 // Additional schemas for API requests
 export const tripPlanningSchema = z.object({
-  origin: z.string().min(1, "Origin is required"),
+  origin: z.string().optional(), // Made origin optional
   destination: z.string().min(1, "Destination is required"),
   startDate: z.string(),
   endDate: z.string(),

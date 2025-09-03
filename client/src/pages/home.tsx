@@ -110,18 +110,7 @@ export default function Home() {
                 <CardContent className="p-6 lg:p-8">
                   <h2 className="text-2xl font-semibold text-foreground mb-6">{t('plan_perfect_trip')}</h2>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                    <div className="floating-input smooth-transition">
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">{t('from')}</label>
-                      <div className="relative">
-                        <DestinationSearch 
-                          data-testid="input-origin"
-                          placeholder={t('current_location')}
-                          className="pl-10"
-                        />
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 gap-4 mb-6">
                     
                     <div className="floating-input smooth-transition">
                       <label className="block text-sm font-medium text-muted-foreground mb-2">{t('destination_worldwide')}</label>

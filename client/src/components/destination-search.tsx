@@ -27,11 +27,31 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  const { data: suggestions = [] } = useQuery({
+  // Explicitly define queryFn to ensure correct URL construction
+  const fetchPlaces = async ({ queryKey }: { queryKey: any }) => {
+    const [, params] = queryKey; // Extract parameters from the queryKey
+    const input = params.input;
+
+    if (!input) {
+      return { predictions: [] }; // Return empty if no input
+    }
+    
+    // Using fetch API directly to control URL construction
+    const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(input)}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json();
+  };
+
+  const { data } = useQuery({
     queryKey: ["/api/places/autocomplete", { input: debouncedValue }],
+    queryFn: fetchPlaces, // Use the custom fetcher
     enabled: debouncedValue.length > 2,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
+
+  const suggestions = data?.predictions || [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

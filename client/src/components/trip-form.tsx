@@ -33,7 +33,7 @@ export default function TripForm({ onClose }: TripFormProps) {
   const form = useForm<TripPlanningRequest>({
     resolver: zodResolver(tripPlanningSchema),
     defaultValues: {
-      origin: "",
+      // origin: "", // Removed 'origin' as it will be optional
       destination: "",
       startDate: "",
       endDate: "",
@@ -58,7 +58,7 @@ export default function TripForm({ onClose }: TripFormProps) {
         const tripData = {
           userId: "user-1", // Mock user ID
           title: result.data.title,
-          origin: form.getValues("origin"),
+          origin: form.getValues("origin") || null, // Make origin optional in saved data
           destination: form.getValues("destination"),
           startDate: form.getValues("startDate"),
           endDate: form.getValues("endDate"),
@@ -106,26 +106,8 @@ export default function TripForm({ onClose }: TripFormProps) {
       <CardContent className="p-6 lg:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Origin and Destination */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="origin"
-                render={({ field }) => (
-                  <FormItem className="floating-input smooth-transition">
-                    <FormLabel>{t("from")}</FormLabel>
-                    <FormControl>
-                      <DestinationSearch
-                        data-testid="input-trip-origin"
-                        placeholder={t("current_location")}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Destination only */}
+            <div className="grid grid-cols-1 gap-4">
               
               <FormField
                 control={form.control}
@@ -306,7 +288,8 @@ export default function TripForm({ onClose }: TripFormProps) {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-transport">
-                              <SelectValue placeholder={t("mixed")} />
+                              <SelectValue placeholder={t("mixed")}
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>

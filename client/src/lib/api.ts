@@ -230,7 +230,7 @@ export class CurrencyApi {
 
 // Initialize API clients with environment variables
 export const googleMapsApi = new GoogleMapsApi(
-  import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+ 'AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc'
 );
 
 export const weatherApi = new WeatherApi(
