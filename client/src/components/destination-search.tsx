@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface LatLng {
   latitude: number;
@@ -37,34 +38,23 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  // Explicitly define queryFn to ensure correct URL construction
-  const fetchPlaces = async ({ queryKey }: { queryKey: any }) => {
-    const [, params] = queryKey; // Extract parameters from the queryKey
+  const fetchPlacesAutocomplete = async ({ queryKey }: { queryKey: any }) => {
+    const [, params] = queryKey;
     const input = params.input;
 
     if (!input) {
-      return { suggestions: [] }; // Return empty if no input
+      return { predictions: [] };
     }
     
-    // Using fetch API directly to control URL construction
-    const response = await fetch("/api/places/autocomplete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ input: input }),
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+    const response = await apiRequest("POST", "/api/places/autocomplete", { input });
     return response.json();
   };
 
   const { data } = useQuery({
-    queryKey: ["/api/places/autocomplete", { input: debouncedValue }],
-    queryFn: fetchPlaces, // Use the custom fetcher
+    queryKey: ["placesAutocomplete", debouncedValue],
+    queryFn: fetchPlacesAutocomplete,
     enabled: debouncedValue.length > 2,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   const suggestions = data?.predictions || [];
@@ -73,11 +63,11 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const newValue = e.target.value;
     setInputValue(newValue);
     setShowSuggestions(newValue.length > 2);
-    // When input changes, we don't have latLng yet, so pass only description
-    onChange?.({ description: newValue });
+    onChange?.({ description: newValue, latLng: undefined }); // Clear latLng on manual input change
   };
 
   const handleSelectSuggestion = (suggestion: any) => {
+    // Directly use latLng from the autocomplete suggestion, if available
     const description = suggestion.description; 
     const latLng = suggestion.latLng;
 
@@ -93,7 +83,6 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
   };
 
   const handleBlur = () => {
-    // Delay hiding suggestions to allow for selection
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
