@@ -5,19 +5,17 @@ import { useState } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 
 interface MapComponentProps {
-  origin: string;
   destination: string;
   waypoints?: string[];
   className?: string;
 }
 
-export default function MapComponent({ origin, destination, waypoints = [], className }: MapComponentProps) {
+export default function MapComponent({ destination, waypoints = [], className }: MapComponentProps) {
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<'roadmap' | 'satellite'>('roadmap');
 
   // Mock map implementation - in production, use Google Maps API
   const markers = [
-    { id: 'origin', name: origin, color: 'bg-destructive', position: { top: '25%', left: '25%' } },
     { id: 'destination', name: destination, color: 'bg-secondary', position: { bottom: '33%', left: '50%' } },
     ...waypoints.map((waypoint, index) => ({
       id: `waypoint-${index}`,
@@ -78,10 +76,6 @@ export default function MapComponent({ origin, destination, waypoints = [], clas
           {/* Map Legend */}
           <div className="absolute bottom-4 left-4 bg-card rounded-lg p-3 elevation-2 max-w-xs">
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-sm">
-                <div className="w-3 h-3 bg-destructive rounded-full"></div>
-                <span className="text-muted-foreground truncate" data-testid="text-origin">{origin}</span>
-              </div>
               {waypoints.map((waypoint, index) => (
                 <div key={index} className="flex items-center space-x-2 text-sm">
                   <div className="w-3 h-3 bg-primary rounded-full"></div>

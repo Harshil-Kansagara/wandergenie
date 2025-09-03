@@ -84,7 +84,7 @@ export default function Itinerary() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2" data-testid="text-trip-title">
-              {itinerary.title || `${(trip as any).origin} to ${(trip as any).destination}`}
+              {itinerary.title || ` to ${(trip as any).destination}`}
             </h1>
             <p className="text-lg text-muted-foreground">
               {t('personalized_itinerary_description')}
@@ -158,7 +158,6 @@ export default function Itinerary() {
               </CardHeader>
               <CardContent className="p-2">
                 <MapComponent 
-                  origin={(trip as any).origin}
                   destination={(trip as any).destination}
                   waypoints={itinerary.days?.map((day: any) => day.location) || []}
                 />

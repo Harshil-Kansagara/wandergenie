@@ -7,7 +7,7 @@ import axios from "axios"; // Import axios
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
 const genai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "default_key"
+  apiKey: "AIzaSyCcHwqvZgV18sqXxtmbzWWPy-0x40YjVUg"
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -17,8 +17,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-itinerary", async (req, res) => {
     try {
       const planningData = tripPlanningSchema.parse(req.body);
-      
-      const prompt = `Generate a detailed travel itinerary for a trip from ${planningData.origin} to ${planningData.destination} from ${planningData.startDate} to ${planningData.endDate}. 
+
+      const prompt = `Generate a detailed travel itinerary for a trip to ${planningData.destination} from ${planningData.startDate} to ${planningData.endDate}. 
       
       Trip details:
       - Budget: ${planningData.budget} ${planningData.currency}

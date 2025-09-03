@@ -33,7 +33,6 @@ export default function TripForm({ onClose }: TripFormProps) {
   const form = useForm<TripPlanningRequest>({
     resolver: zodResolver(tripPlanningSchema),
     defaultValues: {
-      // origin: "", // Removed 'origin' as it will be optional
       destination: "",
       startDate: "",
       endDate: "",
@@ -58,7 +57,6 @@ export default function TripForm({ onClose }: TripFormProps) {
         const tripData = {
           userId: "user-1", // Mock user ID
           title: result.data.title,
-          origin: form.getValues("origin") || null, // Make origin optional in saved data
           destination: form.getValues("destination"),
           startDate: form.getValues("startDate"),
           endDate: form.getValues("endDate"),
