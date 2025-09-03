@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YatraAI - AI-Powered Trip Planner for India</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          colors: {
+            background: "var(--background)",
+            foreground: "var(--foreground)",
+            card: {
+              DEFAULT: "var(--card)",
+              foreground: "var(--card-foreground)",
+            },
+            popover: {
+              DEFAULT: "var(--popover)",
+              foreground: "var(--popover-foreground)",
+            },
+            primary: {
+              DEFAULT: "var(--primary)",
+              foreground: "var(--primary-foreground)",
+            },
+            secondary: {
+              DEFAULT: "var(--secondary)",
+              foreground: "var(--secondary-foreground)",
+            },
+            muted: {
+              DEFAULT: "var(--muted)",
+              foreground: "var(--muted-foreground)",
+            },
+            accent: {
+              DEFAULT: "var(--accent)",
+              foreground: "var(--accent-foreground)",
+            },
+            destructive: {
+              DEFAULT: "var(--destructive)",
+              foreground: "var(--destructive-foreground)",
+            },
+            border: "var(--border)",
+            input: "var(--input)",
+            ring: "var(--ring)",
+          },
+          fontFamily: {
+            sans: ["var(--font-sans)"],
+          }
+        },
+      }
+    };
+    </script>
+    <style>
+      :root {
+        --background: hsl(0 0% 98%);
+        --foreground: hsl(210 6% 13%);
+        --card: hsl(0 0% 100%);
+        --card-foreground: hsl(210 6% 13%);
+        --popover: hsl(0 0% 100%);
+        --popover-foreground: hsl(210 6% 13%);
+        --primary: hsl(217 91% 60%);
+        --primary-foreground: hsl(0 0% 100%);
+        --secondary: hsl(142 71% 45%);
+        --secondary-foreground: hsl(0 0% 100%);
+        --muted: hsl(210 6% 93%);
+        --muted-foreground: hsl(210 6% 46%);
+        --accent: hsl(48 100% 67%);
+        --accent-foreground: hsl(210 6% 13%);
+        --destructive: hsl(0 84% 60%);
+        --destructive-foreground: hsl(0 0% 100%);
+        --border: hsl(210 6% 87%);
+        --input: hsl(210 6% 87%);
+        --ring: hsl(217 91% 60%);
+        --radius: 8px;
+        --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+      
+      body {
+        font-family: var(--font-sans);
+      }
+      
+      .elevation-1 {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      }
+      
+      .elevation-2 {
+        box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+      }
+      
+      .elevation-3 {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+      }
+      
+      .material-transition {
+        transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      }
+      
+      .fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 50;
+      }
+      
+      .loading-shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-background text-foreground min-h-screen">
+  
+  <!-- @COMPONENT: Header -->
+  <header class="bg-card border-b border-border sticky top-0 z-40 elevation-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <i class="fas fa-plane text-primary text-2xl"></i>
+            <h1 class="text-xl font-bold text-foreground">YatraAI</h1>
+          </div>
+        </div>
+        
+        <nav class="hidden md:flex items-center space-x-8">
+          <a href="#" class="text-muted-foreground hover:text-foreground material-transition">Destinations</a>
+          <a href="#" class="text-muted-foreground hover:text-foreground material-transition">Experiences</a>
+          <a href="#" class="text-muted-foreground hover:text-foreground material-transition">Support</a>
+        </nav>
+        
+        <div class="flex items-center space-x-4">
+          <!-- Language Selector -->
+          <select class="text-sm border border-border rounded-md px-3 py-1 bg-card text-foreground" data-implementation="Multilingual support for all Indian languages">
+            <option value="en">English</option>
+            <option value="hi">हिंदी</option>
+            <option value="ta">தமிழ்</option>
+            <option value="te">తెలుగు</option>
+            <option value="bn">বাংলা</option>
+            <option value="mr">मराठी</option>
+          </select>
+          
+          <button class="text-muted-foreground hover:text-foreground material-transition" data-event="click:openProfile">
+            <i class="fas fa-user-circle text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- @END_COMPONENT: Header -->
+
+  <!-- @COMPONENT: Hero Section -->
+  <section class="relative">
+    <!-- Majestic view of the Taj Mahal at sunrise with golden light reflecting on the marble -->
+    <div class="h-96 bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1564507592333-c60657eea523?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=800');">
+      <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div class="text-white max-w-2xl">
+          <h1 class="text-4xl md:text-6xl font-bold mb-4">Discover India with AI</h1>
+          <p class="text-xl md:text-2xl mb-8 text-gray-200">Personalized itineraries crafted by artificial intelligence for unforgettable journeys across incredible India</p>
+          <button class="bg-primary hover:bg-blue-700 text-primary-foreground px-8 py-3 rounded-lg text-lg font-medium material-transition elevation-2" data-event="click:startPlanning">
+            Start Planning Your Trip
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- @END_COMPONENT: Hero Section -->
+
+  <!-- @COMPONENT: Trip Planning Form -->
+  <section class="py-12 bg-muted" id="planning-form">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-foreground mb-4">Plan Your Perfect Indian Adventure</h2>
+        <p class="text-lg text-muted-foreground">Tell us your preferences and let our AI create a personalized itinerary</p>
+      </div>
+      
+      <div class="bg-card rounded-xl p-8 elevation-2 max-w-4xl mx-auto">
+        <form data-implementation="Form should submit to AI itinerary generation service">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Budget Selection -->
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-2">Budget (per person)</label>
+              <select class="w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary" data-bind="preferences.budget">
+                <option value="">Select budget range</option>
+                <option value="budget">Budget (₹10K-25K)</option>
+                <option value="mid">Mid-range (₹25K-50K)</option>
+                <option value="luxury">Luxury (₹50K+)</option>
+              </select>
+            </div>
+            
+            <!-- Duration -->
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-2">Trip Duration</label>
+              <select class="w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary" data-bind="preferences.duration">
+                <option value="">Select duration</option>
+                <option value="3-5">3-5 days</option>
+                <option value="6-10">6-10 days</option>
+                <option value="11-15">11-15 days</option>
+                <option value="15+">15+ days</option>
+              </select>
+            </div>
+            
+            <!-- Travel Dates -->
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-2">Travel Dates</label>
+              <input type="date" class="w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary" data-bind="preferences.startDate">
+            </div>
+          </div>
+          
+          <!-- Travel Themes -->
+          <div class="mb-8">
+            <label class="block text-sm font-medium text-foreground mb-4">Travel Themes (Select all that interest you)</label>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="heritage">
+                <span class="text-sm">🏛️ Heritage & Culture</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="adventure">
+                <span class="text-sm">🏔️ Adventure</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="nightlife">
+                <span class="text-sm">🌃 Nightlife</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="wellness">
+                <span class="text-sm">🧘 Wellness</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="food">
+                <span class="text-sm">🍛 Food & Culinary</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="beaches">
+                <span class="text-sm">🏖️ Beaches</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="wildlife">
+                <span class="text-sm">🐅 Wildlife</span>
+              </label>
+              <label class="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted material-transition cursor-pointer">
+                <input type="checkbox" class="text-primary focus:ring-primary" data-bind="preferences.themes" value="spiritual">
+                <span class="text-sm">🕉️ Spiritual</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Additional Preferences -->
+          <div class="mb-8">
+            <label class="block text-sm font-medium text-foreground mb-2">Additional Preferences (Optional)</label>
+            <textarea class="w-full p-3 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary h-24" placeholder="Tell us about any specific requirements, accessibility needs, or special interests..." data-bind="preferences.additionalNotes"></textarea>
+          </div>
+          
+          <div class="text-center">
+            <button type="submit" class="bg-primary hover:bg-blue-700 text-primary-foreground px-12 py-4 rounded-lg text-lg font-medium material-transition elevation-2" data-event="click:generateItinerary">
+              <i class="fas fa-magic mr-2"></i>
+              Generate AI Itinerary
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+  <!-- @END_COMPONENT: Trip Planning Form -->
+
+  <!-- @COMPONENT: Generated Itinerary Section -->
+  <section class="py-12" id="itinerary-results">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-foreground mb-4">Your Personalized India Itinerary</h2>
+        <p class="text-lg text-muted-foreground">AI-crafted journey based on your preferences</p>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Itinerary Timeline -->
+        <div class="lg:col-span-2">
+          <div class="bg-card rounded-xl p-6 elevation-2 mb-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-semibold text-foreground">Golden Triangle Heritage Tour</h3>
+              <div class="flex items-center space-x-4">
+                <div class="flex items-center text-secondary">
+                  <i class="fas fa-cloud-sun mr-2"></i>
+                  <span class="text-sm" data-implementation="Real-time weather integration">Sunny, 28°C</span>
+                </div>
+                <button class="text-muted-foreground hover:text-foreground" data-event="click:customizeItinerary">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- @MAP: itineraryDays.map(day => ( -->
+            <div class="space-y-6" data-mock="true">
+              
+              <!-- Day 1 -->
+              <div class="border-l-4 border-primary pl-6 pb-6">
+                <div class="flex items-center space-x-3 mb-4">
+                  <div class="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                  <h4 class="text-lg font-medium text-foreground">Delhi - The Capital's Heritage</h4>
+                  <span class="text-sm text-muted-foreground">Today</span>
+                </div>
+                
+                <div class="space-y-4 ml-11">
+                  <div class="bg-muted rounded-lg p-4">
+                    <div class="flex items-start space-x-4">
+                      <!-- Ancient Red Fort in Delhi with intricate Mughal architecture and red sandstone walls -->
+                      <img src="https://images.unsplash.com/photo-1587474260584-136574528ed5?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=80" alt="Red Fort Delhi" class="w-20 h-16 rounded-lg object-cover">
+                      <div class="flex-1">
+                        <h5 class="font-medium text-foreground">Red Fort & Chandni Chowk</h5>
+                        <p class="text-sm text-muted-foreground mb-2">Explore Mughal architecture and vibrant markets</p>
+                        <div class="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span><i class="fas fa-clock mr-1"></i>9:00 AM - 1:00 PM</span>
+                          <span><i class="fas fa-rupee-sign mr-1"></i>₹850</span>
+                          <span><i class="fas fa-star mr-1"></i>4.6</span>
+                        </div>
+                      </div>
+                      <button class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs font-medium" data-event="click:bookActivity">Book</button>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-muted rounded-lg p-4">
+                    <div class="flex items-start space-x-4">
+                      <!-- Majestic India Gate memorial in New Delhi with wide lawns and evening lighting -->
+                      <img src="https://images.unsplash.com/photo-1587474260584-136574528ed5?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=80" alt="India Gate" class="w-20 h-16 rounded-lg object-cover">
+                      <div class="flex-1">
+                        <h5 class="font-medium text-foreground">India Gate & Rashtrapati Bhavan</h5>
+                        <p class="text-sm text-muted-foreground mb-2">Colonial architecture and memorial tour</p>
+                        <div class="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span><i class="fas fa-clock mr-1"></i>3:00 PM - 6:00 PM</span>
+                          <span><i class="fas fa-rupee-sign mr-1"></i>₹400</span>
+                          <span><i class="fas fa-star mr-1"></i>4.4</span>
+                        </div>
+                      </div>
+                      <button class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs font-medium" data-event="click:bookActivity">Book</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Day 2 -->
+              <div class="border-l-4 border-accent pl-6 pb-6">
+                <div class="flex items-center space-x-3 mb-4">
+                  <div class="bg-accent text-accent-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                  <h4 class="text-lg font-medium text-foreground">Agra - The Eternal Love Story</h4>
+                  <span class="text-sm text-muted-foreground">Tomorrow</span>
+                </div>
+                
+                <div class="space-y-4 ml-11">
+                  <div class="bg-muted rounded-lg p-4">
+                    <div class="flex items-start space-x-4">
+                      <!-- Iconic Taj Mahal at sunrise with perfect symmetry and reflecting pools -->
+                      <img src="https://images.unsplash.com/photo-1564507592333-c60657eea523?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=80" alt="Taj Mahal" class="w-20 h-16 rounded-lg object-cover">
+                      <div class="flex-1">
+                        <h5 class="font-medium text-foreground">Taj Mahal Sunrise Tour</h5>
+                        <p class="text-sm text-muted-foreground mb-2">Witness the marble wonder at golden hour</p>
+                        <div class="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span><i class="fas fa-clock mr-1"></i>6:00 AM - 9:00 AM</span>
+                          <span><i class="fas fa-rupee-sign mr-1"></i>₹1,100</span>
+                          <span><i class="fas fa-star mr-1"></i>4.9</span>
+                        </div>
+                      </div>
+                      <button class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs font-medium" data-event="click:bookActivity">Book</button>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-muted rounded-lg p-4">
+                    <div class="flex items-start space-x-4">
+                      <!-- Agra Fort with imposing red sandstone walls and Mughal architecture -->
+                      <img src="https://images.unsplash.com/photo-1598091383021-15ddea10925d?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=80" alt="Agra Fort" class="w-20 h-16 rounded-lg object-cover">
+                      <div class="flex-1">
+                        <h5 class="font-medium text-foreground">Agra Fort & Mehtab Bagh</h5>
+                        <p class="text-sm text-muted-foreground mb-2">Mughal fortress and sunset Taj views</p>
+                        <div class="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span><i class="fas fa-clock mr-1"></i>10:00 AM - 5:00 PM</span>
+                          <span><i class="fas fa-rupee-sign mr-1"></i>₹950</span>
+                          <span><i class="fas fa-star mr-1"></i>4.5</span>
+                        </div>
+                      </div>
+                      <button class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs font-medium" data-event="click:bookActivity">Book</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Day 3 -->
+              <div class="border-l-4 border-secondary pl-6">
+                <div class="flex items-center space-x-3 mb-4">
+                  <div class="bg-secondary text-secondary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                  <h4 class="text-lg font-medium text-foreground">Jaipur - The Pink City Royalty</h4>
+                  <span class="text-sm text-muted-foreground">Day 3</span>
+                </div>
+                
+                <div class="space-y-4 ml-11">
+                  <div class="bg-muted rounded-lg p-4">
+                    <div class="flex items-start space-x-4">
+                      <!-- Magnificent Amber Fort in Jaipur with golden sandstone architecture on a hilltop -->
+                      <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=80" alt="Amber Fort" class="w-20 h-16 rounded-lg object-cover">
+                      <div class="flex-1">
+                        <h5 class="font-medium text-foreground">Amber Fort & Elephant Ride</h5>
+                        <p class="text-sm text-muted-foreground mb-2">Majestic hilltop palace experience</p>
+                        <div class="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span><i class="fas fa-clock mr-1"></i>9:00 AM - 1:00 PM</span>
+                          <span><i class="fas fa-rupee-sign mr-1"></i>₹1,250</span>
+                          <span><i class="fas fa-star mr-1"></i>4.7</span>
+                        </div>
+                      </div>
+                      <button class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs font-medium" data-event="click:bookActivity">Book</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+            <!-- @END_MAP -->
+            
+          </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          
+          <!-- Trip Summary -->
+          <div class="bg-card rounded-xl p-6 elevation-2">
+            <h3 class="text-lg font-semibold text-foreground mb-4">Trip Summary</h3>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Duration</span>
+                <span class="font-medium" data-bind="summary.duration">7 days</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Total Cost</span>
+                <span class="font-medium text-lg" data-bind="summary.totalCost">₹42,350</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Cities</span>
+                <span class="font-medium" data-bind="summary.cities">3</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Activities</span>
+                <span class="font-medium" data-bind="summary.activities">12</span>
+              </div>
+            </div>
+            
+            <hr class="my-4 border-border">
+            
+            <div class="space-y-2">
+              <h4 class="font-medium text-foreground">Cost Breakdown</h4>
+              <div class="text-sm space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Accommodation</span>
+                  <span data-bind="costs.accommodation">₹18,500</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Transportation</span>
+                  <span data-bind="costs.transport">₹12,200</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Activities</span>
+                  <span data-bind="costs.activities">₹8,150</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-muted-foreground">Meals</span>
+                  <span data-bind="costs.meals">₹3,500</span>
+                </div>
+              </div>
+            </div>
+            
+            <button class="w-full bg-secondary hover:bg-green-600 text-secondary-foreground py-3 rounded-lg font-medium material-transition mt-6" data-event="click:proceedToBooking">
+              <i class="fas fa-credit-card mr-2"></i>
+              Proceed to Booking
+            </button>
+          </div>
+          
+          <!-- Weather Alert -->
+          <div class="bg-accent/10 border border-accent rounded-xl p-4">
+            <div class="flex items-center space-x-2 mb-2">
+              <i class="fas fa-exclamation-triangle text-accent"></i>
+              <span class="font-medium text-foreground">Weather Advisory</span>
+            </div>
+            <p class="text-sm text-muted-foreground" data-implementation="Real-time weather-based adjustments">Light rain expected in Delhi tomorrow. We've suggested indoor alternatives for the afternoon.</p>
+          </div>
+          
+          <!-- Interactive Map -->
+          <div class="bg-card rounded-xl p-6 elevation-2">
+            <h3 class="text-lg font-semibold text-foreground mb-4">Route Map</h3>
+            <div class="bg-muted rounded-lg h-48 flex items-center justify-center" data-implementation="Google Maps integration with route and markers">
+              <div class="text-center text-muted-foreground">
+                <i class="fas fa-map-marked-alt text-3xl mb-2"></i>
+                <p class="text-sm">Interactive map loading...</p>
+                <p class="text-xs">Delhi → Agra → Jaipur</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  <!-- @END_COMPONENT: Generated Itinerary Section -->
+
+  <!-- @COMPONENT: Booking Modal -->
+  <div id="booking-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" data-implementation="Modal for booking activities and accommodations">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto elevation-3">
+        <div class="p-6 border-b border-border">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-foreground">Book Your Experience</h3>
+            <button class="text-muted-foreground hover:text-foreground" data-event="click:closeModal">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <!-- Beautiful palace architecture in Rajasthan with intricate carvings and vibrant colors -->
+              <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Activity image" class="w-full h-48 object-cover rounded-lg">
+            </div>
+            
+            <div>
+              <h4 class="text-lg font-semibold text-foreground mb-2" data-bind="booking.activityName">Amber Fort & Elephant Ride</h4>
+              <p class="text-muted-foreground mb-4" data-bind="booking.description">Experience the grandeur of Rajput architecture with a traditional elephant ride up to the magnificent Amber Fort.</p>
+              
+              <div class="space-y-3">
+                <div class="flex items-center text-sm">
+                  <i class="fas fa-clock text-muted-foreground mr-2"></i>
+                  <span data-bind="booking.duration">4 hours</span>
+                </div>
+                <div class="flex items-center text-sm">
+                  <i class="fas fa-users text-muted-foreground mr-2"></i>
+                  <span data-bind="booking.groupSize">Up to 8 people</span>
+                </div>
+                <div class="flex items-center text-sm">
+                  <i class="fas fa-language text-muted-foreground mr-2"></i>
+                  <span>English, Hindi, Rajasthani</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 p-3 bg-muted rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="font-medium text-foreground">Total Price</span>
+                  <span class="text-xl font-bold text-foreground" data-bind="booking.price">₹1,250</span>
+                </div>
+                <p class="text-sm text-muted-foreground">Includes guide and transportation</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-2">Number of Travelers</label>
+              <select class="w-full p-3 border border-border rounded-lg bg-card" data-bind="booking.travelers">
+                <option value="1">1 person</option>
+                <option value="2">2 people</option>
+                <option value="3">3 people</option>
+                <option value="4">4 people</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-foreground mb-2">Special Requirements</label>
+              <textarea class="w-full p-3 border border-border rounded-lg bg-card h-20" placeholder="Any special dietary requirements, accessibility needs, or preferences..." data-bind="booking.requirements"></textarea>
+            </div>
+          </div>
+          
+          <div class="mt-6 flex space-x-4">
+            <button class="flex-1 bg-muted text-muted-foreground py-3 rounded-lg font-medium" data-event="click:closeModal">Cancel</button>
+            <button class="flex-1 bg-primary hover:bg-blue-700 text-primary-foreground py-3 rounded-lg font-medium material-transition" data-event="click:confirmBooking">
+              <i class="fas fa-lock mr-2"></i>
+              Secure Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- @END_COMPONENT: Booking Modal -->
+
+  <!-- @COMPONENT: Popular Destinations Section -->
+  <section class="py-12 bg-muted">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-foreground mb-4">Discover India's Wonders</h2>
+        <p class="text-lg text-muted-foreground">Explore the most popular destinations curated by our AI</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- @MAP: popularDestinations.map(destination => ( -->
+        
+        <!-- Kerala Backwaters -->
+        <div class="bg-card rounded-xl overflow-hidden elevation-2 material-transition hover:elevation-3 cursor-pointer" data-event="click:exploreDestination">
+          <!-- Serene Kerala backwaters with traditional houseboat and lush palm trees -->
+          <img src="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Kerala Backwaters" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-foreground mb-2">Kerala Backwaters</h3>
+            <p class="text-sm text-muted-foreground mb-3">Tranquil waterways and houseboats</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-secondary">From ₹15,000</span>
+              <div class="flex items-center text-sm text-muted-foreground">
+                <i class="fas fa-star text-accent mr-1"></i>
+                <span>4.8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Goa Beaches -->
+        <div class="bg-card rounded-xl overflow-hidden elevation-2 material-transition hover:elevation-3 cursor-pointer" data-event="click:exploreDestination">
+          <!-- Beautiful Goa beach with golden sand, palm trees and azure blue waters -->
+          <img src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Goa Beaches" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-foreground mb-2">Goa Beaches</h3>
+            <p class="text-sm text-muted-foreground mb-3">Sun, sand, and vibrant nightlife</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-secondary">From ₹12,000</span>
+              <div class="flex items-center text-sm text-muted-foreground">
+                <i class="fas fa-star text-accent mr-1"></i>
+                <span>4.6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Himachal Pradesh -->
+        <div class="bg-card rounded-xl overflow-hidden elevation-2 material-transition hover:elevation-3 cursor-pointer" data-event="click:exploreDestination">
+          <!-- Majestic Himachal Pradesh mountains with snow-capped peaks and green valleys -->
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Himachal Pradesh" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-foreground mb-2">Himachal Pradesh</h3>
+            <p class="text-sm text-muted-foreground mb-3">Mountain adventures and hill stations</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-secondary">From ₹20,000</span>
+              <div class="flex items-center text-sm text-muted-foreground">
+                <i class="fas fa-star text-accent mr-1"></i>
+                <span>4.9</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rajasthan Palaces -->
+        <div class="bg-card rounded-xl overflow-hidden elevation-2 material-transition hover:elevation-3 cursor-pointer" data-event="click:exploreDestination">
+          <!-- Magnificent Rajasthan palace with ornate architecture and royal heritage -->
+          <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Rajasthan Palaces" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-foreground mb-2">Rajasthan Palaces</h3>
+            <p class="text-sm text-muted-foreground mb-3">Royal heritage and desert culture</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-secondary">From ₹25,000</span>
+              <div class="flex items-center text-sm text-muted-foreground">
+                <i class="fas fa-star text-accent mr-1"></i>
+                <span>4.7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- @END_MAP -->
+      </div>
+    </div>
+  </section>
+  <!-- @END_COMPONENT: Popular Destinations Section -->
+
+  <!-- @COMPONENT: Footer -->
+  <footer class="bg-foreground text-background py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-4">
+            <i class="fas fa-plane text-primary text-xl"></i>
+            <span class="text-xl font-bold">YatraAI</span>
+          </div>
+          <p class="text-sm text-gray-300 mb-4">AI-powered travel planning for incredible India experiences.</p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-300 hover:text-white material-transition">
+              <i class="fab fa-facebook"></i>
+            </a>
+            <a href="#" class="text-gray-300 hover:text-white material-transition">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="text-gray-300 hover:text-white material-transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">Destinations</h4>
+          <ul class="space-y-2 text-sm text-gray-300">
+            <li><a href="#" class="hover:text-white material-transition">Golden Triangle</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Kerala Backwaters</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Rajasthan Heritage</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Goa Beaches</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">Support</h4>
+          <ul class="space-y-2 text-sm text-gray-300">
+            <li><a href="#" class="hover:text-white material-transition">Help Center</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Travel Insurance</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Cancellation Policy</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Contact Us</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold mb-4">Company</h4>
+          <ul class="space-y-2 text-sm text-gray-300">
+            <li><a href="#" class="hover:text-white material-transition">About Us</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Careers</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-white material-transition">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <hr class="border-gray-700 my-8">
+      
+      <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-300">
+        <p>&copy; 2024 YatraAI. All rights reserved.</p>
+        <div class="flex space-x-6 mt-4 md:mt-0">
+          <span>🇮🇳 Made in India</span>
+          <span>24/7 Support</span>
+          <span>AI-Powered</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <!-- @END_COMPONENT: Footer -->
+
+  <!-- Floating Action Button -->
+  <button class="fab bg-primary hover:bg-blue-700 text-primary-foreground w-14 h-14 rounded-full elevation-3 material-transition" data-event="click:openChatSupport" data-implementation="Open AI chat support">
+    <i class="fas fa-robot text-xl"></i>
+  </button>
+
+  <script>
+    // TODO: Implement business logic, API calls, and state management
+    
+    (function() {
+      // Basic interactivity for demonstration
+      const modal = document.getElementById('booking-modal');
+      
+      // Book activity buttons
+      document.querySelectorAll('[data-event="click:bookActivity"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modal.classList.remove('hidden');
+        });
+      });
+      
+      // Close modal
+      document.querySelectorAll('[data-event="click:closeModal"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modal.classList.add('hidden');
+        });
+      });
+      
+      // Form submission
+      document.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        // TODO: Submit to AI itinerary generation service
+        document.getElementById('itinerary-results').scrollIntoView({ 
+          behavior: 'smooth' 
+        });
+      });
+      
+      // Close modal when clicking outside
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+      
+      // Start planning button
+      document.querySelector('[data-event="click:startPlanning"]').addEventListener('click', () => {
+        document.getElementById('planning-form').scrollIntoView({ 
+          behavior: 'smooth' 
+        });
+      });
+      
+      // Generate itinerary button
+      document.querySelector('[data-event="click:generateItinerary"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        // TODO: Implement AI itinerary generation
+        setTimeout(() => {
+          document.getElementById('itinerary-results').scrollIntoView({ 
+            behavior: 'smooth' 
+          });
+        }, 1000);
+      });
+      
+    })();
+  </script>
+
+</body>
+</html>

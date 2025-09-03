@@ -4,3 +4,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+.local/state/replit/agent/repl_state.bin
+.gitignore
+.local/state/replit/agent/rapid_build_started
+.local/state/replit/agent/rapid_build_success
