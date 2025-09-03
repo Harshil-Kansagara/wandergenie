@@ -234,7 +234,7 @@ export const googleMapsApi = new GoogleMapsApi(
 );
 
 export const weatherApi = new WeatherApi(
-  import.meta.env.VITE_WEATHER_API_KEY || ''
+  'b052d16103b3e6e11e8a724d790d4a2e'
 );
 
 export const currencyApi = new CurrencyApi(

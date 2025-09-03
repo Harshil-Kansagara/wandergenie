@@ -15,7 +15,6 @@ import { useTranslation } from "@/hooks/use-translation";
 
 export default function Home() {
   const { t } = useTranslation();
-  const [showPlanningForm, setShowPlanningForm] = useState(false);
   
   const { data: popularDestinations, isLoading: isLoadingDestinations } = useQuery({
     queryKey: ["/api/destinations/popular"],
@@ -103,41 +102,7 @@ export default function Home() {
 
           {/* Trip Planning Form */}
           <div className="max-w-4xl mx-auto">
-            {showPlanningForm ? (
-              <TripForm onClose={() => setShowPlanningForm(false)} />
-            ) : (
-              <Card className="glass-effect elevation-8 hero-form">
-                <CardContent className="p-6 lg:p-8">
-                  <h2 className="text-2xl font-semibold text-foreground mb-6">{t('plan_perfect_trip')}</h2>
-                  
-                  <div className="grid grid-cols-1 gap-4 mb-6">
-                    
-                    <div className="floating-input smooth-transition">
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">{t('destination_worldwide')}</label>
-                      <div className="relative">
-                        <DestinationSearch 
-                          data-testid="input-destination"
-                          placeholder={t('where_want_to_go')}
-                          className="pl-10"
-                        />
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center pt-4">
-                    <Button 
-                      data-testid="button-generate-itinerary"
-                      onClick={() => setShowPlanningForm(true)}
-                      className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium hover:opacity-90 smooth-transition ripple-effect elevation-4"
-                    >
-                      <Globe className="mr-2 h-5 w-5" />
-                      {t('generate_ai_itinerary')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <TripForm />
           </div>
         </div>
       </section>

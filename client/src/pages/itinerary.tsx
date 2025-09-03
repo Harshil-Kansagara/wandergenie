@@ -148,22 +148,6 @@ export default function Itinerary() {
             {/* Weather Widget */}
             <WeatherWidget destination={(trip as any).destination} />
 
-            {/* Map Component */}
-            <Card className="elevation-2">
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <MapIcon className="h-5 w-5 mr-2 text-primary" />
-                  {t('route_map')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2">
-                <MapComponent 
-                  destination={(trip as any).destination}
-                  waypoints={itinerary.days?.map((day: any) => day.location) || []}
-                />
-              </CardContent>
-            </Card>
-
             {/* AI Insights */}
             <Card className="elevation-2">
               <CardHeader>
@@ -200,6 +184,22 @@ export default function Itinerary() {
             </Card>
           </div>
         </div>
+
+        {/* Map Component */}
+        <Card className="elevation-2 mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <MapIcon className="h-5 w-5 mr-2 text-primary" />
+              {t('route_map')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <MapComponent 
+              destination={(trip as any).destination}
+              waypoints={itinerary.days?.map((day: any) => day.location) || []}
+            />
+          </CardContent>
+        </Card>
 
         {/* Booking Section */}
         <Separator className="my-12" />

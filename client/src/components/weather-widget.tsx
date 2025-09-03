@@ -45,7 +45,20 @@ export default function WeatherWidget({ destination, date }: WeatherWidgetProps)
   const { t } = useTranslation();
   
   const { data: weather, isLoading } = useQuery({
-    queryKey: ["/api/weather", { location: destination, date }],
+    queryKey: ["weatherData", destination, date],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append("location", destination);
+      if (date) {
+        params.append("date", date);
+      }
+      const response = await fetch(`/api/weather?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    },
+    enabled: !!destination,
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 
