@@ -28,9 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       - Transport preference: ${planningData.transport || "Mixed"}
       
       Please provide a comprehensive itinerary in JSON format with:
-      1. Daily activities with time slots, descriptions, and estimated costs
-      2. Transportation details between destinations
-      3. Accommodation recommendations
+      1. Daily activities with time slots, descriptions, and estimated costs, including latitude and longitude for each activity location.
+      2. Transportation details between destinations, including latitude and longitude for any specific transport stops.
+      3. Accommodation recommendations, including latitude and longitude for the accommodation location.
       4. Total cost breakdown by category
       5. Weather considerations and backup plans
       6. Local tips and cultural insights
@@ -42,11 +42,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "duration": "Number of days",
         "totalCost": "Total estimated cost",
         "currency": "Currency code",
+        "destinationLatLng": { "latitude": "Number", "longitude": "Number" },
         "days": [
           {
             "day": 1,
             "date": "YYYY-MM-DD",
             "location": "City/Area",
+            "locationLatLng": { "latitude": "Number", "longitude": "Number" },
             "weather": "Weather info",
             "activities": [
               {
@@ -57,6 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 "duration": "Duration in hours",
                 "type": "activity/meal/transport",
                 "location": "Specific location",
+                "locationLatLng": { "latitude": "Number", "longitude": "Number" },
                 "tips": "Local tips"
               }
             ],
@@ -64,7 +67,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "name": "Hotel name",
               "type": "Hotel type",
               "cost": "Cost per night",
-              "location": "Address"
+              "location": "Address",
+              "locationLatLng": { "latitude": "Number", "longitude": "Number" }
             },
             "totalDayCost": "Total cost for the day"
           }
@@ -108,6 +112,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         error: "Failed to generate itinerary: " + error.message
       });
+    }
+  });
+
+  // New endpoint for Google Routes API
+  app.post("/api/routes/directions", async (req, res) => {
+    try {
+      const { origin, destination, waypoints } = req.body;
+
+      if (!destination) {
+        return res.status(400).json({ error: "Destination is required for route calculation" });
+      }
+
+      const googleMapsApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"; // Ensure you have this env var set
+
+      if (!googleMapsApiKey) {
+        console.error("GOOGLE_MAPS_API_KEY is not set in environment variables.");
+        return res.status(500).json({ error: "Server API key not configured." });
+      }
+
+      const routesApiUrl = `https://routes.googleapis.com/directions/v2:computeRoutes`;
+
+      const requestBody = {
+        origin: { location: { latLng: origin } },
+        destination: { location: { latLng: destination } },
+        intermediates: waypoints?.map((wp: { latLng: any; }) => ({ location: { latLng: wp.latLng } })) || [],
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE",
+        computeAlternativeRoutes: false,
+        languageCode: "en-US",
+        units: "METRIC",
+      };
+
+      const response = await axios.post(routesApiUrl, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': googleMapsApiKey,
+          'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline'
+        }
+      });
+
+      res.json(response.data);
+
+    } catch (error: any) {
+      console.error("Error fetching directions from Routes API:", error);
+      res.status(500).json({ error: "Failed to fetch directions: " + error.message });
     }
   });
 
@@ -167,16 +216,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search destinations
-  app.get("/api/destinations/search", async (req, res) => {
+  app.post("/api/places/autocomplete", async (req, res) => {
     try {
-      const query = req.query.q as string;
-      if (!query) {
-        return res.status(400).json({ error: "Search query required" });
+      const { input } = req.body;
+      
+      if (!input) {
+        return res.status(400).json({ error: "Input required" });
       }
-      const destinations = await storage.searchDestinations(query);
-      res.json(destinations);
+
+      const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY; // Using environment variable
+
+      if (!googlePlacesApiKey) {
+        console.warn("GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete.");
+        // Fallback to mock data if API key is not set
+        const mockPlaces = [
+          { place_id: "1", description: `${input}, France`, structured_formatting: { main_text: input, secondary_text: "France" } },
+          { place_id: "2", description: `${input}, USA`, structured_formatting: { main_text: input, secondary_text: "USA" } },
+          { place_id: "3", description: `${input}, UK`, structured_formatting: { main_text: input, secondary_text: "UK" } },
+          { place_id: "4", description: `${input}, Japan`, structured_formatting: { main_text: input, secondary_text: "Japan" } },
+          { place_id: "5", description: `${input}, Italy`, structured_formatting: { main_text: input, secondary_text: "Italy" } }
+        ];
+        return res.json({
+          predictions: mockPlaces,
+          status: "OK"
+        });
+      }
+
+      const placesApiUrl = `https://places.googleapis.com/v1/places:autocomplete`;
+      const response = await axios.post(placesApiUrl, { input: input }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': googlePlacesApiKey,
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,suggestions'
+        }
+      });
+
+      const formattedPredictions = response.data.suggestions?.map((suggestion: any) => ({
+        place_id: suggestion.placePrediction.place.name,
+        description: suggestion.placePrediction.place.formattedAddress,
+        structured_formatting: {
+          main_text: suggestion.placePrediction.place.displayName.text,
+          secondary_text: suggestion.placePrediction.place.formattedAddress,
+        },
+        // Add latLng if available for directions API to use directly
+        latLng: suggestion.placePrediction.place.location ? { 
+          latitude: suggestion.placePrediction.place.location.latitude,
+          longitude: suggestion.placePrediction.place.location.longitude
+        } : undefined
+      })) || [];
+
+      res.json({
+        predictions: formattedPredictions,
+        status: "OK"
+      });
+
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      console.error("Error fetching places autocomplete:", error);
+      res.status(500).json({ error: "Failed to fetch place suggestions: " + error.message });
     }
   });
 
@@ -239,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Google Places autocomplete proxy
+  // Google Places autocomplete proxy (updated to new Places API)
   app.get("/api/places/autocomplete", async (req, res) => {
     try {
       const { input } = req.query;
@@ -248,17 +344,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Input required" });
       }
 
-      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"
-      console.log("Server-side GOOGLE_PLACES_API_KEY:", googlePlacesApiKey); // Added log
+      const googlePlacesApiKey = process.env.GOOGLE_PLACES_API_KEY; // Using environment variable
       if (!googlePlacesApiKey) {
         console.warn("GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete.");
-        // Fallback to mock data if API key is not set
         const mockPlaces = [
           { place_id: "1", description: `${input}, France`, structured_formatting: { main_text: input, secondary_text: "France" } },
           { place_id: "2", description: `${input}, USA`, structured_formatting: { main_text: input, secondary_text: "USA" } },
-          { place_id: "3", description: `${input}, UK`, structured_formatting: { main_text: input, secondary_text: "UK" } },
-          { place_id: "4", description: `${input}, Japan`, structured_formatting: { main_text: input, secondary_text: "Japan" } },
-          { place_id: "5", description: `${input}, Italy`, structured_formatting: { main_text: input, secondary_text: "Italy" } }
         ];
         return res.json({
           predictions: mockPlaces,
@@ -266,10 +357,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const placesApiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${input}&key=${googlePlacesApiKey}`;
-      const response = await axios.get(placesApiUrl);
+      const placesApiUrl = `https://places.googleapis.com/v1/places:autocomplete`;
+      const response = await axios.post(placesApiUrl, { input: input }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': googlePlacesApiKey,
+          'X-Goog-FieldMask': 'suggestions.placePrediction.place.displayName,suggestions.placePrediction.place.formattedAddress,suggestions.placePrediction.place.location'
+        }
+      });
 
-      res.json(response.data);
+      const formattedPredictions = response.data.suggestions?.map((suggestion: any) => ({
+        place_id: suggestion.placePrediction.place.name,
+        description: suggestion.placePrediction.place.formattedAddress,
+        structured_formatting: {
+          main_text: suggestion.placePrediction.place.displayName.text,
+          secondary_text: suggestion.placePrediction.place.formattedAddress,
+        },
+        // Add latLng if available for directions API to use directly
+        latLng: suggestion.placePrediction.place.location ? { 
+          latitude: suggestion.placePrediction.place.location.latitude,
+          longitude: suggestion.placePrediction.place.location.longitude
+        } : undefined
+      })) || [];
+
+      res.json({
+        predictions: formattedPredictions,
+        status: "OK"
+      });
 
     } catch (error: any) {
       console.error("Error fetching places autocomplete:", error);

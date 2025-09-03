@@ -12,6 +12,16 @@ import WeatherWidget from "@/components/weather-widget";
 import BookingFlow from "@/components/booking-flow";
 import { useTranslation } from "@/hooks/use-translation";
 
+interface LatLng {
+  latitude: number;
+  longitude: number;
+}
+
+interface DestinationData {
+  description: string;
+  latLng?: LatLng;
+}
+
 export default function Itinerary() {
   const { id } = useParams();
   const { t } = useTranslation();
@@ -45,6 +55,24 @@ export default function Itinerary() {
   }
 
   const itinerary = (trip as any)?.itinerary || {};
+  const destinationDescription = (trip as any).destination;
+  const destinationLatLng = itinerary.destinationLatLng; // Directly from AI-generated itinerary
+
+  const mapWaypoints = itinerary.days?.flatMap((day: any) => {
+    const dayLocations: { location: string; latLng?: LatLng }[] = [];
+    if (day.location && day.locationLatLng) {
+      dayLocations.push({ location: day.location, latLng: day.locationLatLng });
+    }
+    day.activities?.forEach((activity: any) => {
+      if (activity.location && activity.locationLatLng) {
+        dayLocations.push({ location: activity.location, latLng: activity.locationLatLng });
+      }
+    });
+    if (day.accommodation?.location && day.accommodation.locationLatLng) {
+      dayLocations.push({ location: day.accommodation.location, latLng: day.accommodation.locationLatLng });
+    }
+    return dayLocations;
+  }) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,7 +112,7 @@ export default function Itinerary() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2" data-testid="text-trip-title">
-              {itinerary.title || ` to ${(trip as any).destination}`}
+              {itinerary.title || ` to ${destinationDescription}`}
             </h1>
             <p className="text-lg text-muted-foreground">
               {t('personalized_itinerary_description')}
@@ -146,7 +174,13 @@ export default function Itinerary() {
             />
 
             {/* Weather Widget */}
-            <WeatherWidget destination={(trip as any).destination} />
+            {destinationLatLng && (
+              <WeatherWidget 
+                destination={destinationDescription}
+                latitude={destinationLatLng.latitude}
+                longitude={destinationLatLng.longitude}
+              />
+            )}
 
             {/* AI Insights */}
             <Card className="elevation-2">
@@ -194,10 +228,12 @@ export default function Itinerary() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <MapComponent 
-              destination={(trip as any).destination}
-              waypoints={itinerary.days?.map((day: any) => day.location) || []}
-            />
+            {destinationLatLng && (
+              <MapComponent 
+                destination={{ description: destinationDescription, latLng: destinationLatLng }}
+                waypoints={mapWaypoints}
+              />
+            )}
           </CardContent>
         </Card>
 

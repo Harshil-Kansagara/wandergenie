@@ -58,6 +58,7 @@ export default function TripForm({ onClose }: TripFormProps) {
           userId: "user-1", // Mock user ID
           title: result.data.title,
           destination: form.getValues("destination"),
+          destinationLatLng: result.data.destinationLatLng, // Use latLng from AI-generated itinerary
           startDate: form.getValues("startDate"),
           endDate: form.getValues("endDate"),
           budget: form.getValues("budget"),
@@ -118,7 +119,12 @@ export default function TripForm({ onClose }: TripFormProps) {
                         data-testid="input-trip-destination"
                         placeholder={t("where_want_to_go")}
                         value={field.value}
-                        onChange={field.onChange}
+                        onChange={({ description }) => {
+                          field.onChange(description);
+                          // The latLng for the main destination will now come from the AI's response in itinerary.destinationLatLng
+                          // No need to set it here from DestinationSearch for trip planning. 
+                          // We will rely on the AI to provide it for mapping and weather.
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

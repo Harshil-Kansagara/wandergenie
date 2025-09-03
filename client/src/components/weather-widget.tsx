@@ -6,6 +6,8 @@ import { useTranslation } from "@/hooks/use-translation";
 
 interface WeatherWidgetProps {
   destination: string;
+  latitude: number;
+  longitude: number;
   date?: string;
 }
 
@@ -41,14 +43,16 @@ const getConditionColor = (condition: string) => {
   }
 };
 
-export default function WeatherWidget({ destination, date }: WeatherWidgetProps) {
+export default function WeatherWidget({ destination, latitude, longitude, date }: WeatherWidgetProps) {
   const { t } = useTranslation();
   
   const { data: weather, isLoading } = useQuery({
-    queryKey: ["weatherData", destination, date],
+    queryKey: ["weatherData", destination, latitude, longitude, date],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append("location", destination);
+      params.append("latitude", String(latitude));
+      params.append("longitude", String(longitude));
       if (date) {
         params.append("date", date);
       }
@@ -58,7 +62,7 @@ export default function WeatherWidget({ destination, date }: WeatherWidgetProps)
       }
       return response.json();
     },
-    enabled: !!destination,
+    enabled: !!destination && !!latitude && !!longitude,
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 

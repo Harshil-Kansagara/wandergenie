@@ -5,10 +5,20 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
 
+interface LatLng {
+  latitude: number;
+  longitude: number;
+}
+
+interface DestinationData {
+  description: string;
+  latLng?: LatLng;
+}
+
 interface DestinationSearchProps {
   placeholder?: string;
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: string; // This might be just the description initially
+  onChange?: (value: DestinationData) => void;
   className?: string;
   "data-testid"?: string;
 }
@@ -33,11 +43,17 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const input = params.input;
 
     if (!input) {
-      return { predictions: [] }; // Return empty if no input
+      return { suggestions: [] }; // Return empty if no input
     }
     
     // Using fetch API directly to control URL construction
-    const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(input)}`);
+    const response = await fetch("/api/places/autocomplete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input: input }),
+    });
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -57,13 +73,17 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const newValue = e.target.value;
     setInputValue(newValue);
     setShowSuggestions(newValue.length > 2);
-    onChange?.(newValue);
+    // When input changes, we don't have latLng yet, so pass only description
+    onChange?.({ description: newValue });
   };
 
   const handleSelectSuggestion = (suggestion: any) => {
-    setInputValue(suggestion.description);
+    const description = suggestion.description; 
+    const latLng = suggestion.latLng;
+
+    setInputValue(description);
     setShowSuggestions(false);
-    onChange?.(suggestion.description);
+    onChange?.({ description, latLng });
   };
 
   const handleFocus = () => {

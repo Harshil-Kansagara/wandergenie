@@ -19,6 +19,7 @@ export const trips = pgTable("trips", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   title: text("title").notNull(),
   destination: text("destination").notNull(),
+  destinationLatLng: jsonb("destination_lat_lng"), // Added destinationLatLng
   startDate: text("start_date").notNull(),
   endDate: text("end_date").notNull(),
   budget: integer("budget").notNull(),
