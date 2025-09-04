@@ -1,35 +1,44 @@
-import { useParams } from "react-router-dom";
-import { Link } from "wouter";
+import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, ArrowLeft, Calendar, Users, DollarSign, Clock, MapIcon, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Users, DollarSign, Clock, MapIcon, Share2 } from "lucide-react";
 import ItineraryCard from "@/components/itinerary-card";
 import MapComponent from "@/components/map-component";
 import CostBreakdown from "@/components/cost-breakdown";
 import WeatherWidget from "@/components/weather-widget";
 import BookingFlow from "@/components/booking-flow";
 import { useTranslation } from "@/hooks/use-translation";
+import { useAuth } from "@/hooks/use-auth.tsx";
+import { Trip } from "@shared/schema";
 
 interface LatLng {
   latitude: number;
   longitude: number;
 }
 
-interface DestinationData {
-  description: string;
-  latLng?: LatLng;
+async function fetchTripDetails(userId: string | undefined, tripId: string | undefined): Promise<Trip> {
+  if (!userId || !tripId) {
+    throw new Error("User ID and Trip ID are required");
+  }
+  const response = await fetch(`/api/trips/${userId}/${tripId}`);
+  if (!response.ok) {
+    throw new Error("Trip not found");
+  }
+  return response.json();
 }
 
 export default function Itinerary() {
-  const { id } = useParams();
+  const [match, params] = useRoute("/itinerary/:id");
+  const id = params?.id;
   const { t } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
   
-  const { data: trip, isLoading, error } = useQuery({
-    queryKey: [`/api/trip/${id}`],
-    enabled: !!id,
+  const { data: trip, isLoading, error } = useQuery<Trip>({
+    queryKey: ["trip", id, user?.uid],
+    queryFn: () => fetchTripDetails(user?.uid || 'anonymous', id),
+    enabled: !!id && !authLoading,
   });
 
   if (isLoading) {
@@ -46,7 +55,7 @@ export default function Itinerary() {
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">{t('trip_not_found')}</p>
-            <Link to="/">
+            <Link href="/">
               <Button className="mt-4">{t('back_to_home')}</Button>
             </Link>
           </CardContent>
@@ -55,9 +64,9 @@ export default function Itinerary() {
     );
   }
 
-  const itinerary = (trip as any)?.itinerary || {};
-  const destinationDescription = (trip as any).destination;
-  const destinationLatLng = itinerary.destinationLatLng; // Directly from AI-generated itinerary
+  const itinerary = trip?.itinerary || {};
+  const destinationDescription = trip.destination;
+  const destinationLatLng = itinerary.destinationLatLng;
 
   const mapWaypoints = itinerary.days?.flatMap((day: any) => {
     const dayLocations: { location: string; latLng?: LatLng }[] = [];
@@ -77,19 +86,17 @@ export default function Itinerary() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50 elevation-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Link to="/">
+              <Link href="/dashboard">
                 <Button variant="ghost" size="sm" data-testid="button-back">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t('back')}
                 </Button>
               </Link>
             </div>
-            
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" data-testid="button-share-trip">
                 <Share2 className="h-4 w-4 mr-2" />
@@ -100,42 +107,39 @@ export default function Itinerary() {
         </div>
       </header>
  
-    {/* Trip header */}
       <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2" data-testid="text-trip-title">
-              {itinerary.title || ` to ${destinationDescription}`}
+              {itinerary.title || `Trip to ${destinationDescription}`}
             </h1>
             <p className="text-lg text-muted-foreground">
               {t('personalized_itinerary_description')}
             </p>
           </div>
-          
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-primary" />
-              <span data-testid="text-trip-dates">{(trip as any).startDate} - {(trip as any).endDate}</span>
+              <span data-testid="text-trip-dates">{trip.startDate} - {trip.endDate}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-4 w-4 text-primary" />
-              <span data-testid="text-group-size">{(trip as any).groupSize} {t('travelers')}</span>
+              <span data-testid="text-group-size">{trip.groupSize} {t('travelers')}</span>
             </div>
             <div className="flex items-center space-x-2">
               <DollarSign className="h-4 w-4 text-primary" />
-              <span data-testid="text-trip-budget">{(trip as any).currency} {(trip as any).budget}</span>
+              <span data-testid="text-trip-budget">{trip.currency} {trip.budget}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4 text-primary" />
-              <span data-testid="text-trip-duration">{itinerary.duration || '7'} {t('days')}</span>
+              <span data-testid="text-trip-duration">{itinerary.duration || 'N/A'} {t('days')}</span>
             </div>
           </div>
         </div>
-      </section> 
-      {/* Main Content */}
+      </section>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Itinerary Timeline */}
           <div className="lg:col-span-2 space-y-6">
             {itinerary.days && itinerary.days.length > 0 ? (
               itinerary.days.map((day: any, index: number) => (
@@ -146,37 +150,27 @@ export default function Itinerary() {
                 <p className="text-muted-foreground">{t('no_itinerary_generated')}</p>
               </Card>
             )}
-            
-            <Button 
-              variant="outline" 
-              className="w-full border-dashed" 
-              data-testid="button-expand-itinerary"
-            >
+            <Button variant="outline" className="w-full border-dashed" data-testid="button-expand-itinerary">
               {t('view_complete_itinerary')}
             </Button>
           </div>
-
-          {/* Sidebar */}
           <div className="space-y-6 sticky top-20">
-            {/* Weather Widget */}
             {destinationLatLng && (
               <WeatherWidget 
                 destination={destinationDescription}
                 latitude={destinationLatLng.latitude}
                 longitude={destinationLatLng.longitude}
+                date={trip.startDate}
               />
             )}
-
-            {/* Cost Breakdown */}
             <CostBreakdown 
               costBreakdown={itinerary.costBreakdown}
               totalCost={itinerary.totalCost}
-              currency={(trip as any).currency}
+              currency={trip.currency}
             />
           </div>
         </div>
 
-        {/* Map Component */}
         <Card className="elevation-2 mt-8">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
@@ -194,12 +188,9 @@ export default function Itinerary() {
           </CardContent>
         </Card>
 
-        {/* Booking Section */}
         <Separator className="my-12" />
         <BookingFlow trip={trip} />
       </div>
-     
-       
     </div>
   );
 }

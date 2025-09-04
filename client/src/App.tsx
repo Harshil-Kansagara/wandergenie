@@ -9,6 +9,7 @@ import Itinerary from "@/pages/itinerary";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/Layout";
+import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 function Router() {
   return (
@@ -26,10 +27,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Layout>
-          <Router />
-        </Layout>
+        <AuthProvider>
+          <Toaster />
+          <Layout>
+            <Router />
+          </Layout>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -85,13 +85,15 @@ export default function WeatherWidget({ destination, latitude, longitude, date }
   if (!weather) {
     return null;
   }
+  
+  const displayDate = date ? new Date(date) : new Date();
 
   return (
     <Card className="elevation-2">
       <CardHeader>
         <CardTitle className="flex items-center text-lg">
           <Thermometer className="h-5 w-5 mr-2 text-primary" />
-          {t('weather_forecast')}
+          {t('weather_forecast')} for {displayDate.toLocaleDateString('en', { month: 'long', day: 'numeric' })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

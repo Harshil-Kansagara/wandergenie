@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
-import { auth } from "@/firebase";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import Header from "./Header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth.tsx";
+import Header from "./Header";
 import SignIn from "./SignIn";
 
 interface LayoutProps {
@@ -10,27 +8,13 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isSignInOpen, setIsSignInOpen] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleSignOut = () => {
-    signOut(auth).then(() => {
-      console.log("User signed out");
-    });
-  };
+  const { user, signOut, isSignInOpen, setIsSignInOpen } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
       <Header 
         user={user} 
-        onSignOut={handleSignOut} 
+        onSignOut={signOut} 
         onSignIn={() => setIsSignInOpen(true)} 
       />
       <main>{children}</main>
