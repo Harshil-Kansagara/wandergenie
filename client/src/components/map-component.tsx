@@ -26,21 +26,18 @@ export default function MapComponent({ destination, waypoints = [], className }:
   const [zoom, setZoom] = useState(10);
   const polylineRef = useRef<google.maps.Polyline | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const [markerLibrary, setMarkerLibrary] = useState<google.maps.MarkerLibrary | null>(null);
 
   useEffect(() => {
-    if (window.google && mapRef.current) {
-      Promise.all([
-        window.google.maps.importLibrary("marker"),
-        window.google.maps.importLibrary("geometry"),
-      ]).then(([markerLib]) => {
-        setMarkerLibrary(markerLib as google.maps.MarkerLibrary);
-      });
+    const initMap = () => {
+      if (!window.google || !mapRef.current) {
+        setTimeout(initMap, 100);
+        return;
+      }
 
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 0, lng: 0 },
         zoom: zoom,
-        mapId: "9372e8953f7a4bc8edecb951", 
+        mapId: "9372e8953f7a4bc8edecb951",
         mapTypeId: 'roadmap',
         fullscreenControl: false,
         streetViewControl: false,
@@ -53,7 +50,12 @@ export default function MapComponent({ destination, waypoints = [], className }:
         strokeWeight: 6,
         map: mapInstance.current,
       });
-    }
+
+      calculateAndDisplayRoute();
+      updateMarkers();
+    };
+
+    initMap();
 
     return () => {
       if (polylineRef.current) {
@@ -70,14 +72,16 @@ export default function MapComponent({ destination, waypoints = [], className }:
   }, [zoom]);
 
   useEffect(() => {
-    if (markerLibrary) {
+    if (mapInstance.current) {
       calculateAndDisplayRoute();
       updateMarkers();
     }
-  }, [destination, waypoints, markerLibrary]);
+  }, [destination, waypoints]);
 
   const updateMarkers = () => {
-    if (!mapInstance.current || !markerLibrary) return;
+    if (!mapInstance.current || !window.google.maps.marker) return;
+
+    const { AdvancedMarkerElement } = window.google.maps.marker;
 
     markersRef.current.forEach(marker => marker.map = null);
     markersRef.current = [];
@@ -90,7 +94,7 @@ export default function MapComponent({ destination, waypoints = [], className }:
         const lng = parseFloat(point.latLng.longitude as any);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-            const marker = new markerLibrary.AdvancedMarkerElement({
+          const marker = new AdvancedMarkerElement({
             position: { lat, lng },
             map: mapInstance.current,
             title: 'location' in point ? point.location : point.description,
@@ -102,33 +106,26 @@ export default function MapComponent({ destination, waypoints = [], className }:
   };
 
   const calculateAndDisplayRoute = async () => {
-    if (!destination.latLng) {
-      console.error("Destination coordinates are missing.");
+    if (!destination.latLng || !waypoints || waypoints.length === 0 || !waypoints[0].latLng || !window.google.maps.geometry) {
+      console.warn("Not enough waypoints to draw a route.");
+      if (polylineRef.current) {
+        polylineRef.current.setPath([]);
+      }
       return;
     }
-    
-    const originLat = parseFloat(destination.latLng.latitude as any);
-    const originLng = parseFloat(destination.latLng.longitude as any);
 
-    if (isNaN(originLat) || isNaN(originLng)) {
-        console.error("Invalid destination coordinates.");
-        return;
-    }
-
-    const origin = { latitude: originLat, longitude: originLng };
-
+    const origin = waypoints[0].latLng;
     const destinationCoord = destination.latLng;
-
-    const intermediateWaypoints = waypoints.slice(1).filter(wp => wp.latLng).map(wp => ({
-      location: { latLng: { latitude: parseFloat(wp.latLng!.latitude as any), longitude: parseFloat(wp.latLng!.longitude as any)} },
-    }));
+    const intermediateWaypoints = waypoints.slice(1)
+      .filter(wp => wp.latLng)
+      .map(wp => ({
+        location: { latLng: wp.latLng! },
+      }));
 
     try {
       const response = await fetch("/api/routes/directions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           origin: origin,
           destination: destinationCoord,
@@ -148,7 +145,6 @@ export default function MapComponent({ destination, waypoints = [], className }:
         polylineRef.current?.setPath(decodedPath);
 
         if (mapInstance.current) {
-          console.warn("draw route.");
           const bounds = new window.google.maps.LatLngBounds();
           decodedPath.forEach(point => bounds.extend(point));
           mapInstance.current.fitBounds(bounds);
@@ -156,56 +152,32 @@ export default function MapComponent({ destination, waypoints = [], className }:
       } else {
         console.warn("No routes found.");
       }
-
     } catch (error) {
       console.error("Error fetching directions:", error);
     }
   };
 
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 1, 20));
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 1, 1));
-  };
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 1, 20));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 1, 1));
 
   return (
     <div className={`bg-muted rounded-xl overflow-hidden ${className}`}>
       <div className="relative h-96">
         <div ref={mapRef} className="w-full h-full" />
-
-        {/* Zoom Controls */}
         <div className="absolute top-4 right-4 bg-card rounded-lg p-2 elevation-2">
           <div className="flex flex-col space-y-2">
-            <Button
-              size="sm"
-              className="w-8 h-8 p-0"
-              onClick={handleZoomIn}
-              data-testid="button-zoom-in"
-            >
+            <Button size="sm" className="w-8 h-8 p-0" onClick={handleZoomIn} data-testid="button-zoom-in">
               <Plus className="h-3 w-3" />
             </Button>
-            <Button
-              size="sm"
-              className="w-8 h-8 p-0"
-              onClick={handleZoomOut}
-              data-testid="button-zoom-out"
-            >
+            <Button size="sm" className="w-8 h-8 p-0" onClick={handleZoomOut} data-testid="button-zoom-out">
               <Minus className="h-3 w-3" />
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Map Controls */}
       <div className="flex items-center justify-between p-4 bg-card">
         <div className="flex items-center space-x-4">
-          <Button
-            variant={'default'}
-            size="sm"
-            data-testid="button-map-view"
-          >
+          <Button variant={'default'} size="sm" data-testid="button-map-view">
             <MapIcon className="h-4 w-4 mr-2" />
             {t('map')}
           </Button>

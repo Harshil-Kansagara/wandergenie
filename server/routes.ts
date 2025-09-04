@@ -118,25 +118,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // New endpoint for Google Routes API
   app.post("/api/routes/directions", async (req, res) => {
     try {
-      const { origin, destination, waypoints } = req.body;
+      const { origin, destination, intermediates } = req.body;
 
-      if (!destination) {
-        return res.status(400).json({ error: "Destination is required for route calculation" });
+      if (!origin || !destination) {
+        return res.status(400).json({ error: "Origin and destination are required for route calculation" });
       }
 
-      const googleMapsApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M"; // Ensure you have this env var set
+      const googleMapsApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M";
 
       if (!googleMapsApiKey) {
         console.error("GOOGLE_MAPS_API_KEY is not set in environment variables.");
         return res.status(500).json({ error: "Server API key not configured." });
       }
 
-      const routesApiUrl = `https://routes.googleapis.com/directions/v2:computeRoutes`;
+      const routesApiUrl = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${googleMapsApiKey}`;
 
       const requestBody = {
         origin: { location: { latLng: origin } },
         destination: { location: { latLng: destination } },
-        intermediates: waypoints?.map((wp: { latLng: any; }) => ({ location: { latLng: wp.latLng } })) || [],
+        intermediates: intermediates || [],
         travelMode: "DRIVE",
         routingPreference: "TRAFFIC_AWARE",
         computeAlternativeRoutes: false,
@@ -147,7 +147,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await axios.post(routesApiUrl, requestBody, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Goog-Api-Key': googleMapsApiKey,
           'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline'
         }
       });
@@ -155,8 +154,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response.data);
 
     } catch (error: any) {
-      console.error("Error fetching directions from Routes API:", error);
-      res.status(500).json({ error: "Failed to fetch directions: " + error.message });
+      console.error("Error fetching directions from Routes API:", error.response ? error.response.data : error.message);
+      res.status(500).json({ 
+        error: "Failed to fetch directions: " + (error.response ? JSON.stringify(error.response.data) : error.message) 
+      });
     }
   });
 
