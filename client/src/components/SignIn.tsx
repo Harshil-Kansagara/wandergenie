@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { useToast } from "../hooks/use-toast";
+import { useAuth } from "../hooks/use-auth";
 
 interface SignInProps {
   onSuccess: () => void;
@@ -15,6 +16,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +46,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
         setEmail("");
         setPassword("");
         setIsSignUp(false);
+        onSuccess();
       })
       .catch((error) => {
         const errorMessage = error.message;

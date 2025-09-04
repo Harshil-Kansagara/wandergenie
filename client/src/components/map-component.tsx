@@ -85,6 +85,7 @@ export default function MapComponent({ destination, waypoints = [], className }:
     markersRef.current = [];
 
     const allPoints = [...waypoints, destination];
+    const bounds = new window.google.maps.LatLngBounds();
 
     allPoints.forEach(point => {
       if (point.latLng) {
@@ -92,15 +93,21 @@ export default function MapComponent({ destination, waypoints = [], className }:
         const lng = parseFloat(point.latLng.longitude as any);
 
         if (!isNaN(lat) && !isNaN(lng)) {
+          const position = { lat, lng };
           const marker = new AdvancedMarkerElement({
-            position: { lat, lng },
+            position,
             map: mapInstance.current,
             title: 'location' in point ? point.location : point.description,
           });
           markersRef.current.push(marker);
+          bounds.extend(position);
         }
       }
     });
+
+    if (markersRef.current.length > 0) {
+      mapInstance.current.fitBounds(bounds);
+    }
   };
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 1, 20));

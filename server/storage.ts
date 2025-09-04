@@ -10,10 +10,10 @@ export interface IStorage {
   updateUserPreferences(id: string, preferences: { preferredLanguage?: string; preferredCurrency?: string; location?: string }): Promise<User>;
 
   // Trip methods
-  getTrip(id: string): Promise<Trip | undefined>;
+  getTrip(id: string, userId?: string): Promise<Trip | undefined>;
   getTripsByUser(userId: string): Promise<Trip[]>;
   createTrip(trip: InsertTrip): Promise<Trip>;
-  updateTrip(id: string, updates: Partial<Trip>): Promise<Trip>;
+  updateTrip(id: string, updates: Partial<Trip>, userId?: string): Promise<Trip>;
   deleteTrip(id: string): Promise<boolean>;
 
   // Destination methods
@@ -36,6 +36,7 @@ export class FirebaseStorage implements IStorage {
   private trips = db.collection("trips");
   private destinations = db.collection("destinations");
   private bookings = db.collection("bookings");
+  private tripLookups = db.collection("tripLookups");
 
   // User methods
   async getUser(id: string): Promise<User | undefined> {
@@ -77,21 +78,35 @@ export class FirebaseStorage implements IStorage {
   }
 
   // Trip methods
-  async getTrip(id: string): Promise<Trip | undefined> {
-    const doc = await this.trips.doc(id).get();
-    return doc.exists ? doc.data() as Trip : undefined;
+  async getTrip(id: string, userId?: string): Promise<Trip | undefined> {
+    if (userId) {
+      const tripDoc = await this.trips.doc(userId).collection("userTrips").doc(id).get();
+      return tripDoc.exists ? tripDoc.data() as Trip : undefined;
+    } else {
+      const lookupDoc = await this.tripLookups.doc(id).get();
+      if (!lookupDoc.exists) {
+        return undefined;
+      }
+      const { userId } = lookupDoc.data() as { userId: string };
+      const tripDoc = await this.trips.doc(userId).collection("userTrips").doc(id).get();
+      return tripDoc.exists ? tripDoc.data() as Trip : undefined;
+    }
   }
 
   async getTripsByUser(userId: string): Promise<Trip[]> {
-    const snapshot = await this.trips.where("userId", "==", userId).get();
+    const userIdToQuery = userId === "undefined" ? "anonymous" : userId;
+    const snapshot = await this.trips.doc(userIdToQuery).collection("userTrips").get();
     return snapshot.docs.map(doc => doc.data() as Trip);
   }
 
   async createTrip(insertTrip: InsertTrip): Promise<Trip> {
-    const id = this.trips.doc().id;
+    const userId = insertTrip.userId === "undefined" ? "anonymous" : insertTrip.userId;
+    const tripCollection = this.trips.doc(userId).collection("userTrips");
+    const newTripRef = tripCollection.doc();
     const trip: Trip = {
       ...insertTrip,
-      id,
+      userId: userId,
+      id: newTripRef.id,
       createdAt: new Date(),
       updatedAt: new Date(),
       status: insertTrip.status || "draft",
@@ -99,21 +114,39 @@ export class FirebaseStorage implements IStorage {
       accommodation: insertTrip.accommodation || null,
       transport: insertTrip.transport || null,
       itinerary: insertTrip.itinerary || null,
-      costBreakdown: insertTrip.costBreakdown || null
+      costBreakdown: insertTrip.costBreakdown || null,
+      destinationLatLng: insertTrip.destinationLatLng ?? null
     };
-    await this.trips.doc(id).set(trip);
+    await newTripRef.set(trip);
+    await this.tripLookups.doc(newTripRef.id).set({ userId: userId });
     return trip;
   }
 
-  async updateTrip(id: string, updates: Partial<Trip>): Promise<Trip> {
-    const tripRef = this.trips.doc(id);
+  async updateTrip(id: string, updates: Partial<Trip>, userId?: string): Promise<Trip> {
+    let tripRef;
+    if (userId) {
+      tripRef = this.trips.doc(userId).collection("userTrips").doc(id);
+    } else {
+      const lookupDoc = await this.tripLookups.doc(id).get();
+      if (!lookupDoc.exists) {
+        throw new Error("Trip not found");
+      }
+      const { userId: lookedUpUserId } = lookupDoc.data() as { userId: string };
+      tripRef = this.trips.doc(lookedUpUserId).collection("userTrips").doc(id);
+    }
+    
     await tripRef.update({ ...updates, updatedAt: new Date() });
     const doc = await tripRef.get();
     return doc.data() as Trip;
   }
 
   async deleteTrip(id: string): Promise<boolean> {
-    await this.trips.doc(id).delete();
+    const lookupDoc = await this.tripLookups.doc(id).get();
+    if (lookupDoc.exists) {
+      const { userId } = lookupDoc.data() as { userId: string };
+      await this.trips.doc(userId).collection("userTrips").doc(id).delete();
+      await this.tripLookups.doc(id).delete();
+    }
     return true;
   }
 

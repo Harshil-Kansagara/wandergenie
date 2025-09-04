@@ -156,7 +156,7 @@ export default function BookingFlow({ trip }: BookingFlowProps) {
     const selectedTransport = transportOptions.find(opt => opt.id === form.getValues("transport"));
     const insuranceCost = form.getValues("travelInsurance") ? 2400 : 0;
     
-    const baseTotal = parseInt(trip.itinerary?.totalCost?.replace(/[^\d]/g, '') || '0');
+    const baseTotal = parseInt(trip.itinerary?.totalCost|| '0');
     const accommodationCost = selectedAccommodation ? selectedAccommodation.price * 7 : 0; // 7 nights
     const transportCost = selectedTransport ? selectedTransport.price : 0;
     
@@ -496,7 +496,7 @@ export default function BookingFlow({ trip }: BookingFlowProps) {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">{t("base_itinerary")}</span>
                         <span className="font-medium" data-testid="text-base-cost">
-                          {formatCurrency(parseInt(trip.itinerary?.totalCost?.replace(/[^\d]/g, '') || '0'), trip.currency)}
+                          {formatCurrency(parseInt(trip.itinerary?.totalCost || '0'), trip.currency)}
                         </span>
                       </div>
                       

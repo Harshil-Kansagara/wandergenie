@@ -7,7 +7,7 @@ import axios from "axios"; // Import axios
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
 const genai = new GoogleGenAI({
-  apiKey: "AIzaSyC6-rzX5Nckcc7UIVe4qgsbWUP9hgyHIqM"
+  apiKey: "AIzaSyA1fBiOsDpUUYtdInuOSIZytUdcTt3vZys"
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }`;
 
       const response = await genai.models.generateContent({
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash",
         config: {
           systemInstruction: "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice.",
           responseMimeType: "application/json",
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user trips
+  // Get all trips for a user
   app.get("/api/trips/:userId", async (req, res) => {
     try {
       const trips = await storage.getTripsByUser(req.params.userId);
@@ -182,10 +182,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get trip by ID
-  app.get("/api/trip/:id", async (req, res) => {
+  // Get a specific trip for a user
+  app.get("/api/trips/:userId/:id", async (req, res) => {
     try {
-      const trip = await storage.getTrip(req.params.id);
+      const { userId, id } = req.params;
+      const trip = await storage.getTrip(id, userId);
       if (!trip) {
         return res.status(404).json({ error: "Trip not found" });
       }
@@ -195,11 +196,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update trip
-  app.put("/api/trip/:id", async (req, res) => {
+  // Update a trip
+  app.put("/api/trips/:userId/:id", async (req, res) => {
     try {
+      const { userId, id } = req.params;
       const updates = req.body;
-      const trip = await storage.updateTrip(req.params.id, updates);
+      const trip = await storage.updateTrip(id, updates, userId);
       res.json(trip);
     } catch (error: any) {
       res.status(400).json({ error: error.message });

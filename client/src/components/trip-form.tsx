@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import DestinationSearch from "./destination-search";
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
+import { useAuth } from "@/hooks/use-auth";
 
 interface TripFormProps {
   onClose?: () => void;
@@ -28,6 +29,7 @@ export default function TripForm({ onClose }: TripFormProps) {
   const { currency } = useCurrency();
   const { t } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<TripPlanningRequest>({
     resolver: zodResolver(tripPlanningSchema),
@@ -53,7 +55,7 @@ export default function TripForm({ onClose }: TripFormProps) {
     onSuccess: async (result) => {
       if (result.success) {
         const tripData = {
-          userId: "user-1",
+          userId: user ? user.uid : "undefined",
           title: result.data.title,
           destination: form.getValues("destination"),
           destinationLatLng: result.data.destinationLatLng,

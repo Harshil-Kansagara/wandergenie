@@ -1,4 +1,5 @@
-import { useParams, Link } from "wouter";
+import { useParams } from "react-router-dom";
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,7 @@ export default function Itinerary() {
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">{t('trip_not_found')}</p>
-            <Link href="/">
+            <Link to="/">
               <Button className="mt-4">{t('back_to_home')}</Button>
             </Link>
           </CardContent>
@@ -81,7 +82,7 @@ export default function Itinerary() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/">
+              <Link to="/">
                 <Button variant="ghost" size="sm" data-testid="button-back">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t('back')}
@@ -156,14 +157,7 @@ export default function Itinerary() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Cost Breakdown */}
-            <CostBreakdown 
-              costBreakdown={itinerary.costBreakdown}
-              totalCost={itinerary.totalCost}
-              currency={(trip as any).currency}
-            />
-
+          <div className="space-y-6 sticky top-20">
             {/* Weather Widget */}
             {destinationLatLng && (
               <WeatherWidget 
@@ -172,6 +166,13 @@ export default function Itinerary() {
                 longitude={destinationLatLng.longitude}
               />
             )}
+
+            {/* Cost Breakdown */}
+            <CostBreakdown 
+              costBreakdown={itinerary.costBreakdown}
+              totalCost={itinerary.totalCost}
+              currency={(trip as any).currency}
+            />
           </div>
         </div>
 
