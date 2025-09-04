@@ -49,9 +49,9 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const [, params] = queryKey;
     const input = params;
     
-    // if (!input) {
-    //   return { predictions: [] };
-    // }
+    if (!input) {
+      return { predictions: [] };
+    }
     
     try {
      

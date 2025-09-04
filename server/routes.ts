@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Destination is required for route calculation" });
       }
 
-      const googleMapsApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"; // Ensure you have this env var set
+      const googleMapsApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M"; // Ensure you have this env var set
 
       if (!googleMapsApiKey) {
         console.error("GOOGLE_MAPS_API_KEY is not set in environment variables.");
@@ -220,22 +220,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { input } = req.body;
       
+      console.log(input);
       if (!input) {
         return res.status(400).json({ error: "Input required" });
       }
 
-      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc"; // Using environment variable
+      const googlePlacesApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M"; // Using environment variable
       console.log("GOOGLE_PLACES_API_KEY for autocomplete:", googlePlacesApiKey); // Log API key
 
       if (!googlePlacesApiKey) {
         console.warn("GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete.");
         // Fallback to mock data if API key is not set
         const mockPlaces = [
-          { place_id: "1", description: `${input}, France`, structured_formatting: { main_text: input, secondary_text: "France" } },
-          { place_id: "2", description: `${input}, USA`, structured_formatting: { main_text: input, secondary_text: "USA" } },
-          { place_id: "3", description: `${input}, UK`, structured_formatting: { main_text: input, secondary_text: "UK" } },
-          { place_id: "4", description: `${input}, Japan`, structured_formatting: { main_text: input, secondary_text: "Japan" } },
-          { place_id: "5", description: `${input}, Italy`, structured_formatting: { main_text: input, secondary_text: "Italy" } }
+          { place_id: "1", description: `${input}`, structured_formatting: { main_text: input, secondary_text: "France" } },
         ];
         return res.json({
           predictions: mockPlaces,
@@ -248,7 +245,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': googlePlacesApiKey,
-          // Requesting comprehensive fields for structured formatting and location
           'X-Goog-FieldMask': '*'
         }
       });
@@ -287,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Place ID is required" });
       }
 
-      const googlePlacesApiKey = "AIzaSyDSDFluV6by9m4aFd8J5uKwR9eoDmQkPZc";
+      const googlePlacesApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M";
       if (!googlePlacesApiKey) {
         return res.status(500).json({ error: "Server API key not configured." });
       }

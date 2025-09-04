@@ -30,14 +30,17 @@ export default function MapComponent({ destination, waypoints = [], className }:
 
   useEffect(() => {
     if (window.google && mapRef.current) {
-      window.google.maps.importLibrary("marker").then((lib) => {
-        setMarkerLibrary(lib as google.maps.MarkerLibrary);
+      Promise.all([
+        window.google.maps.importLibrary("marker"),
+        window.google.maps.importLibrary("geometry"),
+      ]).then(([markerLib]) => {
+        setMarkerLibrary(markerLib as google.maps.MarkerLibrary);
       });
 
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 0, lng: 0 },
         zoom: zoom,
-        mapId: "7b496358553ccbbfdedec4d8", 
+        mapId: "9372e8953f7a4bc8edecb951", 
         mapTypeId: 'roadmap',
         fullscreenControl: false,
         streetViewControl: false,
@@ -145,6 +148,7 @@ export default function MapComponent({ destination, waypoints = [], className }:
         polylineRef.current?.setPath(decodedPath);
 
         if (mapInstance.current) {
+          console.warn("draw route.");
           const bounds = new window.google.maps.LatLngBounds();
           decodedPath.forEach(point => bounds.extend(point));
           mapInstance.current.fitBounds(bounds);
