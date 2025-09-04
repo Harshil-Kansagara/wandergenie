@@ -8,6 +8,7 @@ import Planner from "@/pages/planner";
 import Itinerary from "@/pages/itinerary";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
+import Layout from "@/components/Layout";
 
 function Router() {
   return (
@@ -26,7 +27,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <Layout>
+          <Router />
+        </Layout>
       </TooltipProvider>
     </QueryClientProvider>
   );

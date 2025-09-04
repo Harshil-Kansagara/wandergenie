@@ -7,7 +7,7 @@ import axios from "axios"; // Import axios
 
 // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
 const genai = new GoogleGenAI({
-  apiKey: "AIzaSyCcHwqvZgV18sqXxtmbzWWPy-0x40YjVUg"
+  apiKey: "AIzaSyC6-rzX5Nckcc7UIVe4qgsbWUP9hgyHIqM"
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {

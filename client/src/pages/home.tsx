@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Search, Star, Globe, Calendar, Users, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import TripForm from "@/components/trip-form";
-import LanguageSelector from "@/components/language-selector";
-import CurrencySelector from "@/components/currency-selector";
-import DestinationSearch from "@/components/destination-search";
 import { useTranslation } from "@/hooks/use-translation";
 
 export default function Home() {
   const { t } = useTranslation();
-  
+
   const { data: popularDestinations, isLoading: isLoadingDestinations } = useQuery({
     queryKey: ["/api/destinations/popular"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -30,50 +26,20 @@ export default function Home() {
     },
     {
       content: "The real-time weather adjustments saved our Goa trip. AI suggested indoor activities when it rained - brilliant!",
-      author: "Anjali Verma", 
+      author: "Anjali Verma",
       location: "Bangalore",
       rating: 5
     },
     {
       content: "From booking to payment, everything was seamless. The multilingual support helped our entire family plan together.",
       author: "Rajesh Kumar",
-      location: "Chennai", 
+      location: "Chennai",
       rating: 5
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50 elevation-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-foreground">WanderAI</span>
-              </div>
-              <nav className="hidden md:flex space-x-8 ml-8">
-                <Link href="/" className="text-muted-foreground hover:text-foreground smooth-transition">
-                  {t('destinations')}
-                </Link>
-                <Link href="/planner" className="text-muted-foreground hover:text-foreground smooth-transition">
-                  {t('experiences')}
-                </Link>
-              </nav>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <LanguageSelector />
-              <CurrencySelector />
-              <Button data-testid="button-signin" className="bg-primary text-primary-foreground hover:opacity-90 smooth-transition ripple-effect">
-                {t('sign_in')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary to-secondary text-white py-20 lg:py-32">
         <div 
@@ -266,6 +232,6 @@ export default function Home() {
           💬
         </Button>
       </div>
-    </div>
+    </>
   );
 }

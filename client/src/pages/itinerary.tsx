@@ -87,17 +87,9 @@ export default function Itinerary() {
                   {t('back')}
                 </Button>
               </Link>
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-foreground">WanderAI</span>
-              </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" data-testid="button-save-trip">
-                <Heart className="h-4 w-4 mr-2" />
-                {t('save')}
-              </Button>
               <Button variant="outline" size="sm" data-testid="button-share-trip">
                 <Share2 className="h-4 w-4 mr-2" />
                 {t('share')}
@@ -106,8 +98,8 @@ export default function Itinerary() {
           </div>
         </div>
       </header>
-
-      {/* Trip Header */}
+ 
+    {/* Trip header */}
       <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6">
@@ -138,8 +130,7 @@ export default function Itinerary() {
             </div>
           </div>
         </div>
-      </section>
-
+      </section> 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -181,41 +172,6 @@ export default function Itinerary() {
                 longitude={destinationLatLng.longitude}
               />
             )}
-
-            {/* AI Insights */}
-            <Card className="elevation-2">
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  🧠 {t('ai_insights')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {itinerary.tips && itinerary.tips.slice(0, 3).map((tip: string, index: number) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="w-2 h-2 bg-accent rounded-full mt-2" />
-                    <p className="text-sm text-muted-foreground">{tip}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="elevation-2">
-              <CardHeader>
-                <CardTitle className="text-lg">{t('quick_actions')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start" data-testid="button-modify-itinerary">
-                  ✏️ {t('modify_itinerary')}
-                </Button>
-                <Button variant="ghost" className="w-full justify-start" data-testid="button-add-experience">
-                  ➕ {t('add_experience')}
-                </Button>
-                <Button variant="ghost" className="w-full justify-start" data-testid="button-view-map">
-                  🗺️ {t('view_on_map')}
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -241,6 +197,8 @@ export default function Itinerary() {
         <Separator className="my-12" />
         <BookingFlow trip={trip} />
       </div>
+     
+       
     </div>
   );
 }

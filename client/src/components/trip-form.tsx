@@ -8,13 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Wand2 } from "lucide-react";
 import { tripPlanningSchema, type TripPlanningRequest } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import DestinationSearch, { DestinationData } from "./destination-search"; // Import DestinationData
+import DestinationSearch from "./destination-search";
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -53,12 +52,11 @@ export default function TripForm({ onClose }: TripFormProps) {
     },
     onSuccess: async (result) => {
       if (result.success) {
-        // Save the trip to storage
         const tripData = {
-          userId: "user-1", // Mock user ID
+          userId: "user-1",
           title: result.data.title,
           destination: form.getValues("destination"),
-          destinationLatLng: result.data.destinationLatLng, // Use latLng from AI-generated itinerary
+          destinationLatLng: result.data.destinationLatLng,
           startDate: form.getValues("startDate"),
           endDate: form.getValues("endDate"),
           budget: form.getValues("budget"),
@@ -75,7 +73,6 @@ export default function TripForm({ onClose }: TripFormProps) {
         const tripResponse = await apiRequest("POST", "/api/trips", tripData);
         const trip = await tripResponse.json();
 
-        // Invalidate trips cache
         queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
 
         toast({
@@ -83,7 +80,6 @@ export default function TripForm({ onClose }: TripFormProps) {
           description: t("itinerary_generated_success"),
         });
 
-        // Navigate to the itinerary page
         setLocation(`/itinerary/${trip.id}`);
       }
     },
@@ -105,9 +101,7 @@ export default function TripForm({ onClose }: TripFormProps) {
       <CardContent className="p-6 lg:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Destination only */}
             <div className="grid grid-cols-1 gap-4">
-              
               <FormField
                 control={form.control}
                 name="destination"
@@ -119,12 +113,7 @@ export default function TripForm({ onClose }: TripFormProps) {
                         data-testid="input-trip-destination"
                         placeholder={t("where_want_to_go")}
                         value={field.value}
-                        onChange={({ description }) => {
-                          field.onChange(description);
-                          // The latLng for the main destination will now come from the AI's response in itinerary.destinationLatLng
-                          // No need to set it here from DestinationSearch for trip planning. 
-                          // We will rely on the AI to provide it for mapping and weather.
-                        }}
+                        onChange={({ description }) => field.onChange(description)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -133,7 +122,6 @@ export default function TripForm({ onClose }: TripFormProps) {
               />
             </div>
 
-            {/* Travel Dates */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -142,17 +130,12 @@ export default function TripForm({ onClose }: TripFormProps) {
                   <FormItem className="floating-input smooth-transition">
                     <FormLabel>{t("check_in")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        data-testid="input-start-date"
-                        type="date" 
-                        {...field} 
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
               <FormField
                 control={form.control}
                 name="endDate"
@@ -160,11 +143,7 @@ export default function TripForm({ onClose }: TripFormProps) {
                   <FormItem className="floating-input smooth-transition">
                     <FormLabel>{t("check_out")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        data-testid="input-end-date"
-                        type="date" 
-                        {...field} 
-                      />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -172,7 +151,6 @@ export default function TripForm({ onClose }: TripFormProps) {
               />
             </div>
 
-            {/* Budget and Theme */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -182,7 +160,6 @@ export default function TripForm({ onClose }: TripFormProps) {
                     <FormLabel>{t("budget_range")}</FormLabel>
                     <FormControl>
                       <Input
-                        data-testid="input-budget"
                         type="number"
                         min="100"
                         placeholder="5000"
@@ -194,7 +171,6 @@ export default function TripForm({ onClose }: TripFormProps) {
                   </FormItem>
                 )}
               />
-              
               <FormField
                 control={form.control}
                 name="theme"
@@ -203,7 +179,7 @@ export default function TripForm({ onClose }: TripFormProps) {
                     <FormLabel>{t("travel_theme")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-theme">
+                        <SelectTrigger>
                           <SelectValue placeholder={t("select_theme")} />
                         </SelectTrigger>
                       </FormControl>
@@ -224,15 +200,9 @@ export default function TripForm({ onClose }: TripFormProps) {
               />
             </div>
 
-            {/* Advanced Options */}
             <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
               <CollapsibleTrigger asChild>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  className="flex items-center space-x-2"
-                  data-testid="button-advanced-options"
-                >
+                <Button type="button" variant="ghost" className="flex items-center space-x-2">
                   <span>{t("advanced_options")}</span>
                   <ChevronDown className={`h-4 w-4 transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                 </Button>
@@ -247,7 +217,6 @@ export default function TripForm({ onClose }: TripFormProps) {
                         <FormLabel>{t("group_size")}</FormLabel>
                         <FormControl>
                           <Input
-                            data-testid="input-group-size"
                             type="number"
                             min="1"
                             max="20"
@@ -259,7 +228,6 @@ export default function TripForm({ onClose }: TripFormProps) {
                       </FormItem>
                     )}
                   />
-                  
                   <FormField
                     control={form.control}
                     name="accommodation"
@@ -268,7 +236,7 @@ export default function TripForm({ onClose }: TripFormProps) {
                         <FormLabel>{t("accommodation")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-accommodation">
+                            <SelectTrigger>
                               <SelectValue placeholder={t("any")} />
                             </SelectTrigger>
                           </FormControl>
@@ -282,7 +250,6 @@ export default function TripForm({ onClose }: TripFormProps) {
                       </FormItem>
                     )}
                   />
-                  
                   <FormField
                     control={form.control}
                     name="transport"
@@ -291,9 +258,8 @@ export default function TripForm({ onClose }: TripFormProps) {
                         <FormLabel>{t("transport")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-transport">
-                              <SelectValue placeholder={t("mixed")}
-                              />
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("mixed")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -311,18 +277,16 @@ export default function TripForm({ onClose }: TripFormProps) {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Submit Button */}
             <div className="flex justify-center pt-4 space-x-4">
               {onClose && (
                 <Button type="button" variant="outline" onClick={onClose}>
                   {t("cancel")}
                 </Button>
               )}
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={generateItineraryMutation.isPending}
                 className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium hover:opacity-90 smooth-transition ripple-effect elevation-4"
-                data-testid="button-generate"
               >
                 <Wand2 className="mr-2 h-5 w-5" />
                 {generateItineraryMutation.isPending ? t("generating") : t("generate_ai_itinerary")}

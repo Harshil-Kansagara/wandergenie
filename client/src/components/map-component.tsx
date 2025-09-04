@@ -51,7 +51,6 @@ export default function MapComponent({ destination, waypoints = [], className }:
         map: mapInstance.current,
       });
 
-      calculateAndDisplayRoute();
       updateMarkers();
     };
 
@@ -73,7 +72,6 @@ export default function MapComponent({ destination, waypoints = [], className }:
 
   useEffect(() => {
     if (mapInstance.current) {
-      calculateAndDisplayRoute();
       updateMarkers();
     }
   }, [destination, waypoints]);
@@ -103,58 +101,6 @@ export default function MapComponent({ destination, waypoints = [], className }:
         }
       }
     });
-  };
-
-  const calculateAndDisplayRoute = async () => {
-    if (!destination.latLng || !waypoints || waypoints.length === 0 || !waypoints[0].latLng || !window.google.maps.geometry) {
-      console.warn("Not enough waypoints to draw a route.");
-      if (polylineRef.current) {
-        polylineRef.current.setPath([]);
-      }
-      return;
-    }
-
-    const origin = waypoints[0].latLng;
-    const destinationCoord = destination.latLng;
-    const intermediateWaypoints = waypoints.slice(1)
-      .filter(wp => wp.latLng)
-      .map(wp => ({
-        location: { latLng: wp.latLng! },
-      }));
-
-    try {
-      const response = await fetch("/api/routes/directions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          origin: origin,
-          destination: destinationCoord,
-          intermediates: intermediateWaypoints,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-        const decodedPath = window.google.maps.geometry.encoding.decodePath(route.polyline.encodedPolyline);
-        polylineRef.current?.setPath(decodedPath);
-
-        if (mapInstance.current) {
-          const bounds = new window.google.maps.LatLngBounds();
-          decodedPath.forEach(point => bounds.extend(point));
-          mapInstance.current.fitBounds(bounds);
-        }
-      } else {
-        console.warn("No routes found.");
-      }
-    } catch (error) {
-      console.error("Error fetching directions:", error);
-    }
   };
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 1, 20));
