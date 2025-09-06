@@ -1,25 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "@/hooks/use-translation";
 
-const LANGUAGES = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "it", name: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Português", flag: "🇵🇹" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
-  { code: "ja", name: "日本語", flag: "🇯🇵" },
-  { code: "ko", name: "한국어", flag: "🇰🇷" },
-  { code: "zh", name: "中文", flag: "🇨🇳" },
-  { code: "hi", name: "हिंदी", flag: "🇮🇳" },
-  { code: "ar", name: "العربية", flag: "🇸🇦" },
-];
-
 export default function LanguageSelector() {
-  const { language, setLanguage } = useTranslation();
+  const { language, setLanguage, supportedLanguages } = useTranslation();
 
-  const currentLanguage = LANGUAGES.find(lang => lang.code === language) || LANGUAGES[0];
+  const currentLanguage = supportedLanguages.find(lang => lang.code === language) || supportedLanguages[0];
 
   return (
     <Select value={language} onValueChange={setLanguage}>
@@ -31,8 +16,8 @@ export default function LanguageSelector() {
           </span>
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
-        {LANGUAGES.map((lang) => (
+      <SelectContent className="max-h-72">
+        {supportedLanguages.map((lang) => (
           <SelectItem key={lang.code} value={lang.code}>
             <div className="flex items-center space-x-2">
               <span>{lang.flag}</span>

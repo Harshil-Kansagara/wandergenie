@@ -5,11 +5,6 @@ import { tripPlanningSchema, insertTripSchema } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios"; // Import axios
 
-// Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"
-const genai = new GoogleGenAI({
-  apiKey: "AIzaSyA1fBiOsDpUUYtdInuOSIZytUdcTt3vZys"
-});
-
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Server started. NODE_ENV:", process.env.NODE_ENV); // Added log for NODE_ENV
 
@@ -17,8 +12,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-itinerary", async (req, res) => {
     try {
       const planningData = tripPlanningSchema.parse(req.body);
-
-      const prompt = `Generate a detailed travel itinerary for a trip to ${planningData.destination} from ${planningData.startDate} to ${planningData.endDate}. 
+      console.log("Received planning data:", planningData);
+      const prompt = `Generate a detailed travel itinerary for a trip to ${
+        planningData.destination
+      } from ${planningData.startDate} to ${planningData.endDate}. 
       
       Trip details:
       - Budget: ${planningData.budget} ${planningData.currency}
@@ -90,27 +87,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }`;
 
+      // Note that the newest Gemini model series is "gemini-2.5-flash" or "gemini-2.5-pro"'
+      const genai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+      });
+
       const response = await genai.models.generateContent({
         model: "gemini-2.5-flash",
         config: {
-          systemInstruction: "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice.",
+          systemInstruction:
+            "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice.",
           responseMimeType: "application/json",
         },
         contents: prompt,
       });
 
       const itinerary = JSON.parse(response.text || "{}");
-      
+
       res.json({
         success: true,
-        data: itinerary
+        data: itinerary,
       });
-
     } catch (error: any) {
       console.error("Error generating itinerary:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to generate itinerary: " + error.message
+        error: "Failed to generate itinerary: " + error.message,
       });
     }
   });
@@ -121,14 +123,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { origin, destination, intermediates } = req.body;
 
       if (!origin || !destination) {
-        return res.status(400).json({ error: "Origin and destination are required for route calculation" });
+        return res.status(400).json({
+          error: "Origin and destination are required for route calculation",
+        });
       }
 
-      const googleMapsApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M";
+      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
 
       if (!googleMapsApiKey) {
-        console.error("GOOGLE_MAPS_API_KEY is not set in environment variables.");
-        return res.status(500).json({ error: "Server API key not configured." });
+        console.error(
+          "GOOGLE_MAPS_API_KEY is not set in environment variables."
+        );
+        return res
+          .status(500)
+          .json({ error: "Server API key not configured." });
       }
 
       const routesApiUrl = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${googleMapsApiKey}`;
@@ -146,17 +154,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const response = await axios.post(routesApiUrl, requestBody, {
         headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline'
-        }
+          "Content-Type": "application/json",
+          "X-Goog-FieldMask":
+            "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
+        },
       });
 
       res.json(response.data);
-
     } catch (error: any) {
-      console.error("Error fetching directions from Routes API:", error.response ? error.response.data : error.message);
-      res.status(500).json({ 
-        error: "Failed to fetch directions: " + (error.response ? JSON.stringify(error.response.data) : error.message) 
+      console.error(
+        "Error fetching directions from Routes API:",
+        error.response ? error.response.data : error.message
+      );
+      res.status(500).json({
+        error:
+          "Failed to fetch directions: " +
+          (error.response
+            ? JSON.stringify(error.response.data)
+            : error.message),
       });
     }
   });
@@ -213,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const destinations = await storage.getPopularDestinations();
       res.json(destinations);
-    }    catch (error: any) {
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
@@ -222,62 +237,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/places/autocomplete", async (req, res) => {
     try {
       const { input } = req.body;
-      
+
       console.log(input);
       if (!input) {
         return res.status(400).json({ error: "Input required" });
       }
 
-      const googlePlacesApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M"; // Using environment variable
-      console.log("GOOGLE_PLACES_API_KEY for autocomplete:", googlePlacesApiKey); // Log API key
+      const googlePlacesApiKey = process.env.GOOGLE_MAPS_API_KEY;
 
       if (!googlePlacesApiKey) {
-        console.warn("GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete.");
+        console.warn(
+          "GOOGLE_PLACES_API_KEY is not set. Using mock data for places autocomplete."
+        );
         // Fallback to mock data if API key is not set
         const mockPlaces = [
-          { place_id: "1", description: `${input}`, structured_formatting: { main_text: input, secondary_text: "France" } },
+          {
+            place_id: "1",
+            description: `${input}`,
+            structured_formatting: {
+              main_text: input,
+              secondary_text: "France",
+            },
+          },
         ];
         return res.json({
           predictions: mockPlaces,
-          status: "OK"
+          status: "OK",
         });
       }
 
       const placesApiUrl = `https://places.googleapis.com/v1/places:autocomplete`;
-      const response = await axios.post(placesApiUrl, { input: input }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': googlePlacesApiKey,
-          'X-Goog-FieldMask': '*'
+      const response = await axios.post(
+        placesApiUrl,
+        { input: input },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": googlePlacesApiKey,
+            "X-Goog-FieldMask": "*",
+          },
         }
-      });
+      );
 
-      const formattedPredictions = response.data.suggestions?.map((suggestion: any) => ({
-        place_id: suggestion.placePrediction.placeId,
-        // Use the full text for description initially
-        description: suggestion.placePrediction.text?.text || "",
-        structured_formatting: {
-          // Prioritize structured format if available, otherwise fallback to main text
-          main_text: suggestion.placePrediction.structuredFormat?.mainText?.text || suggestion.placePrediction.text?.text || suggestion.placePrediction.place?.displayName?.text || "",
-          secondary_text: suggestion.placePrediction.structuredFormat?.secondaryText?.text || suggestion.placePrediction.place?.formattedAddress || "",
-        },
-        latLng: suggestion.placePrediction.place?.location ? { 
-          latitude: suggestion.placePrediction.place.location.latitude,
-          longitude: suggestion.placePrediction.place.location.longitude
-        } : undefined
-      })) || [];
+      const formattedPredictions =
+        response.data.suggestions?.map((suggestion: any) => ({
+          place_id: suggestion.placePrediction.placeId,
+          // Use the full text for description initially
+          description: suggestion.placePrediction.text?.text || "",
+          structured_formatting: {
+            // Prioritize structured format if available, otherwise fallback to main text
+            main_text:
+              suggestion.placePrediction.structuredFormat?.mainText?.text ||
+              suggestion.placePrediction.text?.text ||
+              suggestion.placePrediction.place?.displayName?.text ||
+              "",
+            secondary_text:
+              suggestion.placePrediction.structuredFormat?.secondaryText
+                ?.text ||
+              suggestion.placePrediction.place?.formattedAddress ||
+              "",
+          },
+          latLng: suggestion.placePrediction.place?.location
+            ? {
+                latitude: suggestion.placePrediction.place.location.latitude,
+                longitude: suggestion.placePrediction.place.location.longitude,
+              }
+            : undefined,
+        })) || [];
 
       res.json({
         predictions: formattedPredictions,
-        status: "OK"
+        status: "OK",
       });
-
     } catch (error: any) {
       console.error("Error fetching places autocomplete:", error);
-      res.status(500).json({ error: "Failed to fetch place suggestions: " + error.message });
+      res
+        .status(500)
+        .json({ error: "Failed to fetch place suggestions: " + error.message });
     }
   });
 
+  // Not used anywhere yet - Get place details by place ID using new Places API
   app.post("/api/places/details", async (req, res) => {
     try {
       const { placeId } = req.body;
@@ -286,18 +326,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Place ID is required" });
       }
 
-      const googlePlacesApiKey = "AIzaSyDGhSY7tnOjca4zKCBjk_RBU-t7Elx298M";
+      const googlePlacesApiKey = process.env.GOOGLE_MAPS_API_KEY;
+
       if (!googlePlacesApiKey) {
-        return res.status(500).json({ error: "Server API key not configured." });
+        return res
+          .status(500)
+          .json({ error: "Server API key not configured." });
       }
 
       const placesApiUrl = `https://places.googleapis.com/v1/places/${placeId}`;
       const response = await axios.get(placesApiUrl, {
         headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': googlePlacesApiKey,
-          'X-Goog-FieldMask': 'location,formattedAddress,displayName.text'
-        }
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": googlePlacesApiKey,
+          "X-Goog-FieldMask": "location,formattedAddress,displayName.text",
+        },
       });
 
       const placeDetails = response.data;
@@ -305,23 +348,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         description: placeDetails.displayName.text,
         formattedAddress: placeDetails.formattedAddress,
-        latLng: placeDetails.location ? { 
-          latitude: placeDetails.location.latitude,
-          longitude: placeDetails.location.longitude
-        } : undefined
+        latLng: placeDetails.location
+          ? {
+              latitude: placeDetails.location.latitude,
+              longitude: placeDetails.location.longitude,
+            }
+          : undefined,
       });
-
     } catch (error: any) {
       console.error("Error fetching place details:", error);
-      res.status(500).json({ error: "Failed to fetch place details: " + error.message });
+      res
+        .status(500)
+        .json({ error: "Failed to fetch place details: " + error.message });
     }
   });
 
   // Get currency rates (mock endpoint - in production would use real API)
   app.get("/api/currency/rates", async (req, res) => {
     try {
-      const base = req.query.base as string || "USD";
-      
+      const base = (req.query.base as string) || "USD";
+
       // Mock currency rates - in production, use a real currency API
       const rates = {
         USD: 1.0,
@@ -333,13 +379,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         CAD: 1.25,
         CHF: 0.92,
         CNY: 6.45,
-        SGD: 1.35
+        SGD: 1.35,
       };
 
       res.json({
         base,
         rates,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -350,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/weather", async (req, res) => {
     try {
       const { location, date } = req.query;
-      
+
       if (!location) {
         return res.status(400).json({ error: "Location required" });
       }
@@ -360,14 +406,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location,
         date,
         temperature: Math.floor(Math.random() * 30) + 10,
-        condition: ["sunny", "cloudy", "rainy", "partly-cloudy"][Math.floor(Math.random() * 4)],
+        condition: ["sunny", "cloudy", "rainy", "partly-cloudy"][
+          Math.floor(Math.random() * 4)
+        ],
         humidity: Math.floor(Math.random() * 100),
         windSpeed: Math.floor(Math.random() * 20),
         forecast: Array.from({ length: 7 }, (_, i) => ({
-          date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          date: new Date(Date.now() + i * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
           temperature: Math.floor(Math.random() * 30) + 10,
-          condition: ["sunny", "cloudy", "rainy", "partly-cloudy"][Math.floor(Math.random() * 4)]
-        }))
+          condition: ["sunny", "cloudy", "rainy", "partly-cloudy"][
+            Math.floor(Math.random() * 4)
+          ],
+        })),
       };
 
       res.json(weatherData);
@@ -380,15 +432,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/user/detect-location", async (req, res) => {
     try {
       const { latitude, longitude } = req.body;
-      
+
       // Mock location detection - in production, use reverse geocoding
       const locationData = {
         country: "United States",
-        countryCode: "US", 
+        countryCode: "US",
         city: "New York",
         currency: "USD",
         language: "en",
-        timezone: "America/New_York"
+        timezone: "America/New_York",
       };
 
       res.json(locationData);
@@ -401,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, currency = "USD" } = req.body;
-      
+
       // Mock payment intent creation
       const paymentIntent = {
         id: `pi_mock_${Date.now()}`,
@@ -410,11 +462,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: currency.toLowerCase(),
         status: "requires_payment_method",
       };
-      
+
       res.json(paymentIntent);
     } catch (error: any) {
-      res.status(500).json({ 
-        error: "Mock payment intent creation failed: " + error.message 
+      res.status(500).json({
+        error: "Mock payment intent creation failed: " + error.message,
       });
     }
   });
@@ -422,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/confirm-payment", async (req, res) => {
     try {
       const { payment_intent_id, payment_method } = req.body;
-      
+
       // Mock payment confirmation - always succeeds in development
       const confirmedPayment = {
         id: payment_intent_id,
@@ -431,17 +483,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: "usd",
         receipt_url: `https://receipts.mock.stripe.com/${payment_intent_id}`,
       };
-      
+
       // Simulate some processing time
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       res.json({
         success: true,
         payment: confirmedPayment,
       });
     } catch (error: any) {
-      res.status(500).json({ 
-        error: "Mock payment confirmation failed: " + error.message 
+      res.status(500).json({
+        error: "Mock payment confirmation failed: " + error.message,
       });
     }
   });
@@ -450,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bookings", async (req, res) => {
     try {
       const bookingData = req.body;
-      
+
       // Create a mock booking
       const booking = await storage.createBooking({
         tripId: bookingData.tripId,
@@ -463,15 +515,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "confirmed",
         bookingReference: `WA-${Date.now().toString().slice(-8)}`,
       });
-      
+
       res.json({
         success: true,
         booking,
         message: "Booking confirmed successfully",
       });
     } catch (error: any) {
-      res.status(500).json({ 
-        error: "Booking creation failed: " + error.message 
+      res.status(500).json({
+        error: "Booking creation failed: " + error.message,
       });
     }
   });

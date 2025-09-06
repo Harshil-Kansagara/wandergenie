@@ -1,4 +1,8 @@
-import { currencyApi } from "./api";
+import { CurrencyApi } from "./currency-api";
+
+export const currencyApi = new CurrencyApi(
+  import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+);
 
 export interface CurrencyInfo {
   code: string;
@@ -43,37 +47,53 @@ export const CURRENCIES: CurrencyInfo[] = [
 
 export class CurrencyConverter {
   private rates: { [key: string]: number } = {};
-  private baseCurrency: string = 'USD';
+  private baseCurrency: string = "USD";
   private lastUpdated: Date | null = null;
-  private updateInterval: number = 60 * 60 * 1000; // 1 hour
+  private readonly updateInterval: number = 60 * 60 * 1000; // 1 hour
 
-  async updateRates(baseCurrency: string = 'USD') {
+  async updateRates(baseCurrency: string = "USD") {
     try {
       const data = await currencyApi.getExchangeRates(baseCurrency);
       this.rates = data.rates;
       this.baseCurrency = baseCurrency;
       this.lastUpdated = new Date();
-      
+
       // Cache rates in localStorage
-      localStorage.setItem('currency_rates', JSON.stringify({
-        rates: this.rates,
-        baseCurrency: this.baseCurrency,
-        lastUpdated: this.lastUpdated.toISOString(),
-      }));
+      localStorage.setItem(
+        "currency_rates",
+        JSON.stringify({
+          rates: this.rates,
+          baseCurrency: this.baseCurrency,
+          lastUpdated: this.lastUpdated.toISOString(),
+        })
+      );
     } catch (error) {
-      console.error('Failed to update currency rates:', error);
+      console.error("Failed to update currency rates:", error);
       // Try to load from cache
       this.loadFromCache();
     }
   }
 
+  /**
+   * Manually sets the exchange rates and updates the last updated time.
+   * This is useful when fetching rates from an external source like React Query.
+   * @param rates - A dictionary of currency codes to their exchange rates.
+   * @param baseCurrency - The base currency for the provided rates.
+   */
+  setRates(rates: { [key: string]: number }, baseCurrency: string = "USD") {
+    this.rates = rates;
+    this.baseCurrency = baseCurrency;
+    this.lastUpdated = new Date();
+    // Optionally, you could also update the cache here if desired.
+  }
+
   private loadFromCache() {
     try {
-      const cached = localStorage.getItem('currency_rates');
+      const cached = localStorage.getItem("currency_rates");
       if (cached) {
         const data = JSON.parse(cached);
         const cacheAge = Date.now() - new Date(data.lastUpdated).getTime();
-        
+
         // Use cached data if it's less than 24 hours old
         if (cacheAge < 24 * 60 * 60 * 1000) {
           this.rates = data.rates;
@@ -82,12 +102,15 @@ export class CurrencyConverter {
         }
       }
     } catch (error) {
-      console.error('Failed to load currency rates from cache:', error);
+      console.error("Failed to load currency rates from cache:", error);
     }
   }
 
   async ensureRatesLoaded() {
-    if (!this.lastUpdated || Date.now() - this.lastUpdated.getTime() > this.updateInterval) {
+    if (
+      !this.lastUpdated ||
+      Date.now() - this.lastUpdated.getTime() > this.updateInterval
+    ) {
       await this.updateRates();
     }
   }
@@ -98,7 +121,9 @@ export class CurrencyConverter {
     }
 
     if (!this.rates[fromCurrency] || !this.rates[toCurrency]) {
-      console.warn(`Exchange rate not available for ${fromCurrency} to ${toCurrency}`);
+      console.warn(
+        `Exchange rate not available for ${fromCurrency} to ${toCurrency}`
+      );
       return amount; // Return original amount if rates not available
     }
 
@@ -116,31 +141,37 @@ export class CurrencyConverter {
   }
 
   formatCurrency(amount: number, currencyCode: string): string {
-    const currency = CURRENCIES.find(c => c.code === currencyCode);
+    const currency = CURRENCIES.find((c) => c.code === currencyCode);
     if (!currency) {
       return `${amount.toFixed(2)} ${currencyCode}`;
     }
 
     // Use Intl.NumberFormat for proper currency formatting
     try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
         currency: currencyCode,
         minimumFractionDigits: 0,
-        maximumFractionDigits: currencyCode === 'JPY' || currencyCode === 'KRW' ? 0 : 2,
+        maximumFractionDigits:
+          currencyCode === "JPY" || currencyCode === "KRW" ? 0 : 2,
       }).format(amount);
     } catch (error) {
+      console.warn(
+        `Failed to format currency using Intl.NumberFormat for currency code: ${currencyCode}. Falling back to manual formatting.`,
+        error
+      );
       // Fallback to manual formatting
-      const roundedAmount = currencyCode === 'JPY' || currencyCode === 'KRW' 
-        ? Math.round(amount) 
-        : Math.round(amount * 100) / 100;
-      
+      const roundedAmount =
+        currencyCode === "JPY" || currencyCode === "KRW"
+          ? Math.round(amount)
+          : Math.round(amount * 100) / 100;
+
       return `${currency.symbol}${roundedAmount.toLocaleString()}`;
     }
   }
 
   getCurrencyInfo(currencyCode: string): CurrencyInfo | undefined {
-    return CURRENCIES.find(c => c.code === currencyCode);
+    return CURRENCIES.find((c) => c.code === currencyCode);
   }
 
   getAllCurrencies(): CurrencyInfo[] {
@@ -171,30 +202,64 @@ export class CurrencyConverter {
 // Create a singleton instance
 export const currencyConverter = new CurrencyConverter();
 
-// Initialize rates on module load
-currencyConverter.ensureRatesLoaded().catch(console.error);
-
 // Utility functions
 export function formatPrice(amount: number, currency: string): string {
   return currencyConverter.formatCurrency(amount, currency);
 }
 
-export function convertPrice(amount: number, fromCurrency: string, toCurrency: string): number {
+export function convertPrice(
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string
+): number {
   return currencyConverter.convert(amount, fromCurrency, toCurrency);
 }
 
 export function detectCurrencyFromLocation(countryCode: string): string {
   const currencyMap: { [key: string]: string } = {
-    'US': 'USD', 'CA': 'CAD', 'MX': 'MXN', 'BR': 'BRL',
-    'GB': 'GBP', 'IE': 'EUR', 'FR': 'EUR', 'DE': 'EUR', 'IT': 'EUR', 'ES': 'EUR',
-    'NL': 'EUR', 'BE': 'EUR', 'AT': 'EUR', 'PT': 'EUR', 'GR': 'EUR', 'FI': 'EUR',
-    'SE': 'SEK', 'NO': 'NOK', 'DK': 'DKK', 'CH': 'CHF',
-    'PL': 'PLN', 'CZ': 'CZK', 'HU': 'HUF', 'RU': 'RUB', 'TR': 'TRY',
-    'JP': 'JPY', 'CN': 'CNY', 'KR': 'KRW', 'IN': 'INR',
-    'TH': 'THB', 'MY': 'MYR', 'ID': 'IDR', 'PH': 'PHP', 'VN': 'VND',
-    'SG': 'SGD', 'AU': 'AUD', 'NZ': 'NZD',
-    'ZA': 'ZAR', 'EG': 'EGP', 'AE': 'AED', 'SA': 'SAR', 'IL': 'ILS',
+    US: "USD",
+    CA: "CAD",
+    MX: "MXN",
+    BR: "BRL",
+    GB: "GBP",
+    IE: "EUR",
+    FR: "EUR",
+    DE: "EUR",
+    IT: "EUR",
+    ES: "EUR",
+    NL: "EUR",
+    BE: "EUR",
+    AT: "EUR",
+    PT: "EUR",
+    GR: "EUR",
+    FI: "EUR",
+    SE: "SEK",
+    NO: "NOK",
+    DK: "DKK",
+    CH: "CHF",
+    PL: "PLN",
+    CZ: "CZK",
+    HU: "HUF",
+    RU: "RUB",
+    TR: "TRY",
+    JP: "JPY",
+    CN: "CNY",
+    KR: "KRW",
+    IN: "INR",
+    TH: "THB",
+    MY: "MYR",
+    ID: "IDR",
+    PH: "PHP",
+    VN: "VND",
+    SG: "SGD",
+    AU: "AUD",
+    NZ: "NZD",
+    ZA: "ZAR",
+    EG: "EGP",
+    AE: "AED",
+    SA: "SAR",
+    IL: "ILS",
   };
 
-  return currencyMap[countryCode] || 'USD';
+  return currencyMap[countryCode] || "USD";
 }

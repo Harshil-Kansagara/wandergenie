@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,12 +22,12 @@ interface TripFormProps {
   onClose?: () => void;
 }
 
-export default function TripForm({ onClose }: TripFormProps) {
+export default function TripForm({ onClose }: Readonly<TripFormProps>) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currency } = useCurrency();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { user } = useAuth();
 
@@ -41,11 +41,21 @@ export default function TripForm({ onClose }: TripFormProps) {
       currency: currency,
       theme: "culture",
       groupSize: 2,
-      accommodation: "",
+      accommodation: "any",
       transport: "",
-      language: "en",
+      language: language,
     },
   });
+
+  // When the global language or currency changes (e.g., from geolocation or user selection),
+  // reset the form to update its default values. This is more robust than using setValue.
+  useEffect(() => {
+    form.reset({
+      ...form.getValues(), // Keep existing form values
+      currency: currency,
+      language: language,
+    });
+  }, [currency, language, form]);
 
   const generateItineraryMutation = useMutation({
     mutationFn: async (data: TripPlanningRequest) => {
@@ -95,6 +105,7 @@ export default function TripForm({ onClose }: TripFormProps) {
   });
 
   const onSubmit = (data: TripPlanningRequest) => {
+    console.log(data);
     generateItineraryMutation.mutate(data);
   };
 

@@ -37,7 +37,7 @@ export default function MapComponent({ destination, waypoints = [], className }:
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 0, lng: 0 },
         zoom: zoom,
-        mapId: "9372e8953f7a4bc8edecb951",
+        mapId: import.meta.env.VITE_GOOGLE_MAP_ID || undefined,
         mapTypeId: 'roadmap',
         fullscreenControl: false,
         streetViewControl: false,
