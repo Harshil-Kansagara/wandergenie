@@ -44,47 +44,67 @@ export const EN_TRANSLATIONS: TranslationStrings = {
   back: "Back",
 
   // Hero Section
-  discover_world_with_ai: "Discover the World with AI",
-  ai_craft_perfect_adventure:
-    "Let artificial intelligence craft your perfect global adventure. From heritage tours to thrilling experiences - personalized just for you.",
-  plan_perfect_trip: "Plan Your Perfect Trip",
-  from: "From",
-  destination_worldwide: "Destination Worldwide",
-  current_location: "Your current location",
-  where_want_to_go: "Where do you want to go?",
-  generate_ai_itinerary: "Generate AI Itinerary",
+  hero_headline: "Don't Just Travel. Discover Your Journey.",
+  hero_subheadline:
+    "Your AI-powered adventure starts with one simple quiz. Find out what kind of traveler you are and unlock a personalized itinerary tailored just for you.",
+  hero_cta: "Start Your Adventure!",
+
+  // How it works
+  how_it_works_title: "How It Works: The Simple Breakdown",
+  how_it_works_step1_title: "Discover Your Persona",
+  how_it_works_step1_desc:
+    "Take our fun, interactive quiz to reveal your unique travel personality—from Thrill-Seeker to Cultural Crusader.",
+  how_it_works_step2_title: "Get a Personalized Itinerary",
+  how_it_works_step2_desc:
+    "Our AI, powered by your persona, crafts a day-by-day itinerary with activities, places to eat, and hidden gems.",
+  how_it_works_step3_title: "Live Your Story",
+  how_it_works_step3_desc:
+    "Your itinerary is more than a list—it's a story. Embark on a journey designed just for you, with real-time updates and seamless navigation.",
+
+  // Personas
+  personas_title: "Find Your Inner Traveler.",
+  personas_desc:
+    "We all have a unique way of seeing the world. Which one are you?",
+  persona_urban_explorer: "The Urban Explorer",
+  persona_urban_explorer_tagline: "Finding the city's hidden pulse.",
+  persona_thrill_seeker: "The Thrill-Seeker",
+  persona_thrill_seeker_tagline: "Chasing the next adrenaline rush.",
+  persona_cultural_crusader: "The Cultural Crusader",
+  persona_cultural_crusader_tagline: "Living and breathing history.",
+  persona_foodie_fanatic: "The Foodie Fanatic",
+  persona_foodie_fanatic_tagline: "Tasting the world, one bite at a time.",
+
+  // Footer
+  footer_about_us: "About Us",
+  footer_contact: "Contact",
+  footer_privacy_policy: "Privacy Policy",
+  footer_final_cta: "Start Your Adventure!",
 
   // Trip Planning Form
   create_your_perfect_trip: "Create Your Perfect Trip",
   ai_powered_planning_description:
     "Tell us about your travel preferences and let our AI create a personalized itinerary just for you.",
-  check_in: "Check-in",
-  check_out: "Check-out",
-  budget_range: "Budget Range",
-  travel_theme: "Travel Theme",
-  select_theme: "Select a theme",
-  heritage_culture: "Heritage & Culture",
-  adventure_trekking: "Adventure & Trekking",
-  nightlife_entertainment: "Nightlife & Entertainment",
-  spiritual_wellness: "Spiritual & Wellness",
-  food_culinary: "Food & Culinary",
-  beach_relaxation: "Beach & Relaxation",
-  culture_museums: "Culture & Museums",
-  nature_wildlife: "Nature & Wildlife",
-  advanced_options: "Advanced Options",
+  destination: "Destination",
+  where_want_to_go: "e.g., Paris, France",
+  start_date: "Start Date",
+  end_date: "End Date",
+  your_trip_budget: "Your Trip Budget",
+  add_trip_preferences: "Add Trip Preferences",
   group_size: "Group Size",
+  group_size_solo: "Solo",
+  group_size_couple: "Couple",
+  group_size_family: "Family",
+  group_size_group: "Group (4+)",
   accommodation: "Accommodation",
-  any: "Any",
-  budget: "Budget",
-  mid_range: "Mid-range",
-  luxury: "Luxury",
+  accommodation_luxury: "Luxury Hotel",
+  accommodation_boutique: "Boutique/Homestay",
+  accommodation_hostel: "Hostel/Camping",
   transport: "Transport",
-  mixed: "Mixed",
-  flight_preferred: "Flight Preferred",
-  train_preferred: "Train Preferred",
-  road_trip: "Road Trip",
-  cancel: "Cancel",
+  transport_public: "Public/Local",
+  transport_private: "Private Car/Cab",
+  transport_rental: "Motorcycle/Scooter",
   generating: "Generating...",
+  generate_trip: "Generate Trip",
 
   // Itinerary
   personalized_itinerary_description:

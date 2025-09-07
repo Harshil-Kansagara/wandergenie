@@ -17,6 +17,7 @@ import DestinationSearch from "./destination-search";
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
 import { useAuth } from "@/hooks/use-auth";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 interface TripFormProps {
   onClose?: () => void;
@@ -106,42 +107,41 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
 
   const onSubmit = (data: TripPlanningRequest) => {
     console.log(data);
-    generateItineraryMutation.mutate(data);
+    // generateItineraryMutation.mutate(data);
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-2xl mx-auto">
       <CardContent className="p-6 lg:p-8">
+        <h2 className="text-2xl font-bold text-center mb-4">{t('create_your_perfect_trip')}</h2>
+        <p className="text-muted-foreground text-center mb-6">{t('ai_powered_planning_description')}</p>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 gap-4">
-              <FormField
-                control={form.control}
-                name="destination"
-                render={({ field }) => (
-                  <FormItem className="floating-input smooth-transition">
-                    <FormLabel>{t("destination_worldwide")}</FormLabel>
-                    <FormControl>
-                      <DestinationSearch
-                        data-testid="input-trip-destination"
-                        placeholder={t("where_want_to_go")}
-                        value={field.value}
-                        onChange={({ description }) => field.onChange(description)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('destination')}</FormLabel>
+                  <FormControl>
+                    <DestinationSearch
+                      placeholder={t('where_want_to_go')}
+                      value={field.value}
+                      onChange={({ description }) => field.onChange(description)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
-                  <FormItem className="floating-input smooth-transition">
-                    <FormLabel>{t("check_in")}</FormLabel>
+                  <FormItem>
+                    <FormLabel>{t('start_date')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -153,8 +153,8 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
                 control={form.control}
                 name="endDate"
                 render={({ field }) => (
-                  <FormItem className="floating-input smooth-transition">
-                    <FormLabel>{t("check_out")}</FormLabel>
+                  <FormItem>
+                    <FormLabel>{t('end_date')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -164,145 +164,127 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="budget"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("budget_range")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="100"
-                        placeholder="5000"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="theme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("travel_theme")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("select_theme")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="heritage">{t("heritage_culture")}</SelectItem>
-                        <SelectItem value="adventure">{t("adventure_trekking")}</SelectItem>
-                        <SelectItem value="nightlife">{t("nightlife_entertainment")}</SelectItem>
-                        <SelectItem value="spiritual">{t("spiritual_wellness")}</SelectItem>
-                        <SelectItem value="food">{t("food_culinary")}</SelectItem>
-                        <SelectItem value="beach">{t("beach_relaxation")}</SelectItem>
-                        <SelectItem value="culture">{t("culture_museums")}</SelectItem>
-                        <SelectItem value="nature">{t("nature_wildlife")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="budget"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('your_trip_budget')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 2000"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
               <CollapsibleTrigger asChild>
                 <Button type="button" variant="ghost" className="flex items-center space-x-2">
-                  <span>{t("advanced_options")}</span>
+                  <span>{t('add_trip_preferences')}</span>
                   <ChevronDown className={`h-4 w-4 transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="groupSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("group_size")}</FormLabel>
+              <CollapsibleContent className="space-y-6 pt-4">
+                <FormField
+                  control={form.control}
+                  name="groupSize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('group_size')}</FormLabel>
+                      <Select onValueChange={field.onChange}>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="20"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accommodation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("accommodation")}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t("any")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="budget">{t("budget")}</SelectItem>
-                            <SelectItem value="mid-range">{t("mid_range")}</SelectItem>
-                            <SelectItem value="luxury">{t("luxury")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="transport"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("transport")}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t("mixed")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="flight">{t("flight_preferred")}</SelectItem>
-                            <SelectItem value="train">{t("train_preferred")}</SelectItem>
-                            <SelectItem value="road">{t("road_trip")}</SelectItem>
-                            <SelectItem value="mixed">{t("mixed")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="1">{t('group_size_solo')}</SelectItem>
+                          <SelectItem value="2">{t('group_size_couple')}</SelectItem>
+                          <SelectItem value="4">{t('group_size_family')}</SelectItem>
+                          <SelectItem value="5">{t('group_size_group')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="accommodation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('accommodation')}</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="luxury">{t('accommodation_luxury')}</SelectItem>
+                          <SelectItem value="boutique">{t('accommodation_boutique')}</SelectItem>
+                          <SelectItem value="hostel">{t('accommodation_hostel')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="transport"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('transport')}</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value="public" id="public" />
+                            </FormControl>
+                            <FormLabel htmlFor="public">{t('transport_public')}</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value="private" id="private" />
+                            </FormControl>
+                            <FormLabel htmlFor="private">{t('transport_private')}</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <RadioGroupItem value="rental" id="rental" />
+                            </FormControl>
+                            <FormLabel htmlFor="rental">{t('transport_rental')}</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CollapsibleContent>
             </Collapsible>
 
-            <div className="flex justify-center pt-4 space-x-4">
-              {onClose && (
-                <Button type="button" variant="outline" onClick={onClose}>
-                  {t("cancel")}
-                </Button>
-              )}
+            <div className="flex justify-center pt-4">
               <Button
                 type="submit"
                 disabled={generateItineraryMutation.isPending}
                 className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium hover:opacity-90 smooth-transition ripple-effect elevation-4"
               >
                 <Wand2 className="mr-2 h-5 w-5" />
-                {generateItineraryMutation.isPending ? t("generating") : t("generate_ai_itinerary")}
+                {generateItineraryMutation.isPending ? t("generating") : t('generate_trip')}
               </Button>
             </div>
           </form>

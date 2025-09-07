@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
+import QuizPage from "./pages/quiz";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/planner" component={Planner} />
       <Route path="/itinerary/:id" component={Itinerary} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/quiz" component={QuizPage} />
       <Route component={NotFound} />
     </Switch>
   );

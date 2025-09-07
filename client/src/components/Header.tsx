@@ -1,9 +1,10 @@
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { MapPin, LogOut } from "lucide-react";
+import { Compass, LogOut } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import LanguageSelector from "@/components/language-selector";
 import CurrencySelector from "@/components/currency-selector";
-import { User } from "firebase/auth";
+import type { User } from "firebase/auth";
 
 interface HeaderProps {
   user: User | null;
@@ -11,7 +12,7 @@ interface HeaderProps {
   onSignIn: () => void;
 }
 
-export default function Header({ user, onSignOut, onSignIn }: HeaderProps) {
+export default function Header({ user, onSignOut, onSignIn }: Readonly<HeaderProps>) {
   const { t } = useTranslation();
 
   return (
@@ -19,10 +20,12 @@ export default function Header({ user, onSignOut, onSignIn }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">WanderAI</span>
-            </div>
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 smooth-transition">
+              <Compass className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold text-foreground">
+                WanderGenie
+              </span>
+            </Link>
             <nav className="hidden md:flex space-x-8 ml-8">
               <a href="/" className="text-muted-foreground hover:text-foreground smooth-transition">
                 {t('destinations')}
