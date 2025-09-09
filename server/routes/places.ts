@@ -51,7 +51,7 @@ router.post("/autocomplete", async (req, res) => {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": googlePlacesApiKey,
           "X-Goog-FieldMask":
-            "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.place.location,suggestions.placePrediction.place.formattedAddress,suggestions.placePrediction.place.displayName",
+            "suggestions.placePrediction.placeId,suggestions.placePrediction.text",
         },
       }
     );
@@ -138,11 +138,9 @@ router.post("/directions", async (req, res) => {
     const { origin, destination, intermediates } = req.body;
 
     if (!origin || !destination) {
-      return res
-        .status(400)
-        .json({
-          error: "Origin and destination are required for route calculation",
-        });
+      return res.status(400).json({
+        error: "Origin and destination are required for route calculation",
+      });
     }
 
     const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -181,15 +179,11 @@ router.post("/directions", async (req, res) => {
       "Error fetching directions from Routes API:",
       error.response ? error.response.data : error.message
     );
-    res
-      .status(500)
-      .json({
-        error:
-          "Failed to fetch directions: " +
-          (error.response
-            ? JSON.stringify(error.response.data)
-            : error.message),
-      });
+    res.status(500).json({
+      error:
+        "Failed to fetch directions: " +
+        (error.response ? JSON.stringify(error.response.data) : error.message),
+    });
   }
 });
 

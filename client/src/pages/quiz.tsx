@@ -1,18 +1,35 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, PartyPopper } from "lucide-react";
 import TripForm from "@/components/trip-form";
+import { ApiClient } from "@/lib/api-client";
+import { ApiError } from "@/lib/api-error";
 
-async function fetchQuizQuestions() {
-  const response = await fetch("/api/quiz/questions");
-  if (!response.ok) {
-    throw new Error("Failed to fetch quiz questions");
-  }
-  return response.json();
+const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
+
+/**
+ * Fetches quiz questions from the API.
+ */
+function fetchQuizQuestions() {
+  return apiClient.get("/api/quiz/questions");
+}
+
+function fetchPersonas() {
+  return apiClient.get("/api/personas");
+}
+
+/**
+ * Calculates the user's persona based on their answers.
+ * @param answers - A record of question IDs to selected option data.
+ */
+function calculatePersona(answers: Record<string, any>) {
+  console.log("answers", answers);
+  return apiClient.post("/api/quiz/calculate-persona", { answers });
 }
 
 const variants = {
@@ -31,31 +48,57 @@ const variants = {
 };
 
 export default function QuizPage() {
-  const { data: questions, isLoading, error } = useQuery<any[]>({
+  const { data: questions, isLoading, error } = useQuery<any[], ApiError>({
     queryKey: ["quizQuestions"],
     queryFn: fetchQuizQuestions,
+  });
+
+  const { data: personas } = useQuery<any[]>({
+    queryKey: ["personas"],
+    queryFn: fetchPersonas,
   });
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [direction, setDirection] = useState(1);
+  const [dominantPersona, setDominantPersona] = useState<string | null>(null);
+  const [isRestarting, setIsRestarting] = useState(false);
+
+  const mutation = useMutation<any, ApiError, Record<string, any>>({
+    mutationFn: calculatePersona,
+    onSuccess: (data) => {
+      setDominantPersona(data.persona);
+    },
+    // No need for onError here if we handle it directly from the mutation state,
+    // but you could add global logic here too, e.g., for logging.
+    // onError: (error) => { console.error("Mutation failed:", error); }
+  });
 
   const handleNext = () => {
     if (selectedOption) {
       setDirection(1);
-      setCurrentQuestionIndex((prev) => prev + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      if (nextIndex === questions?.length) {
+        mutation.mutate(answers);
+      }
       setSelectedOption(null);
     }
   };
 
   const handleBack = () => {
+    if (currentQuestionIndex <= 0) return;
+
     setDirection(-1);
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
-    const prevAnswerKey = questions?.[currentQuestionIndex - 1]?.id;
-    if (prevAnswerKey) {
-      setSelectedOption(answers[prevAnswerKey]?.option_text || null);
-    }
+    const prevIndex = currentQuestionIndex - 1;
+    setCurrentQuestionIndex(prevIndex);
+
+    // Restore the selected option for the previous question
+    const prevQuestionId = questions?.[prevIndex]?.id;
+    const prevAnswer = prevQuestionId ? answers[prevQuestionId] : null;
+
+    setSelectedOption(prevAnswer?.option_text || null);
   };
 
   const handleSelectOption = (questionId: string, option: any) => {
@@ -63,20 +106,122 @@ export default function QuizPage() {
     setSelectedOption(option.option_text);
   };
 
+  const handleRestart = () => {
+    setIsRestarting(true);
+    setCurrentQuestionIndex(0); // Reset index immediately before animation
+    setDirection(-1); // Animate out to the right
+
+    // Allow the exit animation to complete before resetting the state
+    setTimeout(() => {
+      setAnswers({});
+      setSelectedOption(null);
+      setDominantPersona(null);
+      mutation.reset();
+      setIsRestarting(false);
+    }, 500); // This duration should match your animation exit duration
+  };
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">Loading Quiz...</div>;
   }
 
-  if (error || !questions) {
-    return <div className="flex justify-center items-center h-screen">Failed to load quiz. Please try again.</div>;
+  if (error) {
+    let errorMessage = "Failed to load quiz. Please try again.";
+    if (error instanceof ApiError) {
+      // You can customize the message based on the error status or body
+      if (error.status === 500) {
+        errorMessage = "There was a problem on our server. Please try again later.";
+      } else if (error.body?.message) {
+        errorMessage = error.body.message;
+      }
+    }
+    return <div className="flex justify-center items-center h-screen text-red-500">{errorMessage}</div>;
+  }
+
+  if (!questions) {
+    return <div className="flex justify-center items-center h-screen">Something went wrong. Quiz data is not available.</div>;
   }
 
   const isQuizFinished = currentQuestionIndex >= questions.length;
 
+  const getButtonContent = () => {
+    const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+    if (mutation.isPending && isLastQuestion) {
+      return (
+        <>
+          <div className="animate-spin w-5 h-5 mr-3 border-2 border-background border-t-transparent rounded-full" />
+          Calculating...
+        </>
+      );
+    }
+
+    return isLastQuestion ? "Done" : "Continue";
+  };
+
+  const renderQuizResult = () => {
+    if (mutation.isPending) {
+      return (
+        <CardContent className="pt-6 text-center">
+          <div className="flex justify-center items-center mb-4">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+          </div>
+          <p className="text-muted-foreground">Calculating your traveler persona...</p>
+        </CardContent>
+      );
+    }
+
+    if (dominantPersona && personas) {
+      const personaDetails = personas.find(p => p.id === dominantPersona);
+      return (
+        <div className="text-center">
+          <PartyPopper className="h-16 w-16 text-primary mx-auto mb-6" />
+          <CardHeader className="p-0">
+            <p className="text-lg font-medium text-muted-foreground">You are a...</p>
+            <h2 className="text-4xl font-bold tracking-tight text-primary mb-4">
+              {personaDetails?.name || dominantPersona}
+            </h2>
+            <p className="max-w-2xl mx-auto text-muted-foreground mb-8">
+              {personaDetails?.description}
+              <br />
+              Now, let's craft your perfect journey below.
+            </p>
+          </CardHeader>
+          <Separator className="my-8" />
+          <div className="px-4 text-left">
+            <h3 className="text-2xl font-bold text-center mb-2">
+              Create Your Perfect Trip
+            </h3>
+            <TripForm persona={dominantPersona} renderInCard={false} />
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button variant="outline" onClick={handleRestart}>Restart Quiz</Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Default to the error/retry state
+    const errorMessage = mutation.error instanceof ApiError
+      ? mutation.error.body?.message || "Could not determine your persona."
+      : "An unexpected error occurred. Please try again.";
+
+    return (
+      <CardContent className="pt-6 text-center text-red-500">
+        <p>{errorMessage}</p>
+        <div className="flex justify-center gap-4 mt-4">
+          <Button onClick={() => mutation.mutate(answers)}>Try Again</Button>
+          <Button variant="outline" onClick={handleRestart}>Restart Quiz</Button>
+        </div>
+      </CardContent>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4">
-      <AnimatePresence mode="wait">
-        {isQuizFinished ? (
+      <AnimatePresence initial={false} mode="wait" custom={direction}>
+        {isQuizFinished && !isRestarting ? (
           <motion.div
             key="trip-form"
             initial={{ opacity: 0, y: 20 }}
@@ -86,13 +231,7 @@ export default function QuizPage() {
             className="w-full max-w-4xl"
           >
             <Card className="p-8">
-              <CardContent>
-                <h2 className="text-3xl font-bold text-center mb-2">Almost there!</h2>
-                <p className="text-muted-foreground text-center mb-8">
-                  Just a few more details to craft your perfect journey.
-                </p>
-                <TripForm />
-              </CardContent>
+              {renderQuizResult()}
             </Card>
           </motion.div>
         ) : (
@@ -161,11 +300,11 @@ export default function QuizPage() {
                 <div className="flex justify-center mt-8">
                   <Button
                     size="lg"
-                    onClick={handleNext}
-                    disabled={!selectedOption}
+                    onClick={handleNext} // This will trigger the mutation on the last question
+                    disabled={!selectedOption || mutation.isPending}
                     className="px-12"
                   >
-                    Continue
+                    {getButtonContent()}
                   </Button>
                 </div>
               </CardContent>

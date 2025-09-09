@@ -58,7 +58,6 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
       const inputData={input};
       const response = await apiRequest("POST", "/api/places/autocomplete", inputData);
       const jsonResponse = await response.json();
-      console.log(jsonResponse)
       return jsonResponse;
     } catch (error) {
       console.error("Error in fetchPlacesAutocomplete API request:", error);

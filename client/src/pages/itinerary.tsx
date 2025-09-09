@@ -12,21 +12,21 @@ import BookingFlow from "@/components/booking-flow";
 import { useTranslation } from "@/hooks/use-translation";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { Trip } from "@shared/schema";
+import { ApiError } from "@/lib/api-error.ts";
+import { ApiClient } from "@/lib/api-client.ts";
 
 interface LatLng {
   latitude: number;
   longitude: number;
 }
 
-async function fetchTripDetails(userId: string | undefined, tripId: string | undefined): Promise<Trip> {
+const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
+
+function fetchTripDetails(userId: string | undefined, tripId: string | undefined): Promise<Trip> {
   if (!userId || !tripId) {
     throw new Error("User ID and Trip ID are required");
   }
-  const response = await fetch(`/api/trips/${userId}/${tripId}`);
-  if (!response.ok) {
-    throw new Error("Trip not found");
-  }
-  return response.json();
+  return apiClient.get(`/trips/${userId}/${tripId}`);
 }
 
 export default function Itinerary() {
@@ -35,10 +35,11 @@ export default function Itinerary() {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   
-  const { data: trip, isLoading, error } = useQuery<Trip>({
+  const { data: trip, isLoading, error } = useQuery<Trip, ApiError>({
     queryKey: ["trip", id, user?.uid],
     queryFn: () => fetchTripDetails(user?.uid || 'anonymous', id),
     enabled: !!id && !authLoading,
+    retry: false, // Optional: prevent react-query from retrying on 4xx/5xx errors
   });
 
   if (isLoading) {
@@ -49,15 +50,37 @@ export default function Itinerary() {
     );
   }
 
-  if (error || !trip) {
+  if (error) {
+    let errorMessage = t('trip_not_found'); // Default error message
+    if (error instanceof ApiError) {
+      if (error.status !== 404) {
+        // For non-404 errors, show a more generic message, possibly from the API
+        errorMessage = error.body?.message || "An unexpected error occurred.";
+      }
+    }
+
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <p className="text-muted-foreground">{errorMessage}</p>
+            <Link href="/">
+              <Button className="mt-4">{t('back_to_home')}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!trip) {
+    // This case handles when the query is successful but returns no data.
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">{t('trip_not_found')}</p>
-            <Link href="/">
-              <Button className="mt-4">{t('back_to_home')}</Button>
-            </Link>
+            <Link href="/"><Button className="mt-4">{t('back_to_home')}</Button></Link>
           </CardContent>
         </Card>
       </div>

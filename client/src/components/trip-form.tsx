@@ -10,7 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Wand2 } from "lucide-react";
-import { tripPlanningSchema, type TripPlanningRequest } from "@shared/schema";
+import {
+  tripPlanningSchema as baseTripPlanningSchema,
+  type TripPlanningRequest,
+} from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import DestinationSearch from "./destination-search";
@@ -19,11 +22,24 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useAuth } from "@/hooks/use-auth";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
+const tripPlanningSchema = baseTripPlanningSchema.refine(
+  (data) => {
+    if (data.startDate && data.endDate) {
+      return new Date(data.endDate) > new Date(data.startDate);
+    }
+    return true; // Pass validation if one of the dates is missing
+  },
+  { message: "End date must be after the start date", path: ["endDate"] }
+);
+
 interface TripFormProps {
+  persona?: string;
+  /** Determines if the form should be wrapped in its own Card component. Defaults to true. */
+  renderInCard?: boolean;
   onClose?: () => void;
 }
 
-export default function TripForm({ onClose }: Readonly<TripFormProps>) {
+export default function TripForm({ persona, renderInCard = true }: Readonly<TripFormProps>) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,16 +48,20 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { user } = useAuth();
 
+  const getTodayString = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
   const form = useForm<TripPlanningRequest>({
     resolver: zodResolver(tripPlanningSchema),
     defaultValues: {
       destination: "",
-      startDate: "",
+      startDate: getTodayString(),
       endDate: "",
       budget: 5000,
-      currency: currency,
-      theme: "culture",
-      groupSize: 2,
+      currency: currency, // This will be updated by useEffect
+      theme: persona,
+      groupSize: undefined,
       accommodation: "any",
       transport: "",
       language: language,
@@ -54,6 +74,7 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
     form.reset({
       ...form.getValues(), // Keep existing form values
       currency: currency,
+      theme: persona, // Set theme from persona prop
       language: language,
     });
   }, [currency, language, form]);
@@ -110,10 +131,8 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
     // generateItineraryMutation.mutate(data);
   };
 
-  return (
-    <Card className="max-w-2xl mx-auto">
-      <CardContent className="p-6 lg:p-8">
-        <h2 className="text-2xl font-bold text-center mb-4">{t('create_your_perfect_trip')}</h2>
+  const FormContent = (
+    <div>
         <p className="text-muted-foreground text-center mb-6">{t('ai_powered_planning_description')}</p>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -143,7 +162,7 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
                   <FormItem>
                     <FormLabel>{t('start_date')}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" placeholder="YYYY-MM-DD" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,7 +175,7 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
                   <FormItem>
                     <FormLabel>{t('end_date')}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" placeholder="YYYY-MM-DD" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,8 +215,8 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
                   name="groupSize"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('group_size')}</FormLabel>
-                      <Select onValueChange={field.onChange}>
+                      <FormLabel>{t("group_size")}</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -289,6 +308,18 @@ export default function TripForm({ onClose }: Readonly<TripFormProps>) {
             </div>
           </form>
         </Form>
+    </div>
+  );
+
+  if (!renderInCard) {
+    return FormContent;
+  }
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardContent className="p-6 lg:p-8">
+        <h2 className="text-2xl font-bold text-center mb-4">{t('create_your_perfect_trip')}</h2>
+        {FormContent}
       </CardContent>
     </Card>
   );

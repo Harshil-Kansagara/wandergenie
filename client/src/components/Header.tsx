@@ -27,9 +27,6 @@ export default function Header({ user, onSignOut, onSignIn }: Readonly<HeaderPro
               </span>
             </Link>
             <nav className="hidden md:flex space-x-8 ml-8">
-              <a href="/" className="text-muted-foreground hover:text-foreground smooth-transition">
-                {t('destinations')}
-              </a>
               {user && (
                 <a href="/dashboard" className="text-muted-foreground hover:text-foreground smooth-transition">
                   {t('experiences')}

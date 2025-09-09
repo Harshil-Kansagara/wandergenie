@@ -7,14 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { t } from "@/lib/translation";
 import { useQuery } from "@tanstack/react-query";
+import { ApiClient } from "@/lib/api-client.ts";
 
-async function fetchTrips(userId: string | undefined) {
+const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
+
+function fetchTrips(userId: string | undefined) {
   if (!userId) return [];
-  const response = await fetch(`/api/trips/${userId}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch trips");
-  }
-  return response.json();
+  return apiClient.get(`/trips/${userId}`);
 }
 
 export default function Dashboard() {

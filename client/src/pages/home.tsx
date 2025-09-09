@@ -3,15 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
 import { useQuery } from "@tanstack/react-query";
-import { Compass, Map, Backpack } from "lucide-react";
+import { Compass, Map as MapIcon, Backpack } from "lucide-react";
+import { ApiClient } from "@/lib/api-client";
 
-async function fetchPersonas() {
-  const response = await fetch(`/api/personas`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch personas");
-  }
-  return response.json();
-}
+const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
+
+const fetchPersonas = () => apiClient.get("/api/personas");
 
 export default function Home() {
   const { t } = useTranslation();
@@ -64,7 +61,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                <Map className="w-8 h-8 text-primary" />
+                <MapIcon className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-4">{t('how_it_works_step2_title')}</h3>
               <p className="text-muted-foreground">
