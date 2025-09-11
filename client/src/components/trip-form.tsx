@@ -81,40 +81,33 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
 
   const generateItineraryMutation = useMutation({
     mutationFn: async (data: TripPlanningRequest) => {
-      const response = await apiRequest("POST", "/api/generate-itinerary", data);
+      const response = await apiRequest("POST", "/api/ai/generate-itinerary", data);
       return response.json();
     },
-    onSuccess: async (result) => {
-      if (result.success) {
-        const tripData = {
-          userId: user ? user.uid : "undefined",
-          title: result.data.title,
-          destination: form.getValues("destination"),
-          destinationLatLng: result.data.destinationLatLng,
-          startDate: form.getValues("startDate"),
-          endDate: form.getValues("endDate"),
-          budget: form.getValues("budget"),
-          currency: form.getValues("currency"),
-          theme: form.getValues("theme"),
-          groupSize: form.getValues("groupSize"),
-          accommodation: form.getValues("accommodation"),
-          transport: form.getValues("transport"),
-          itinerary: result.data,
-          costBreakdown: result.data.costBreakdown,
-          status: "draft",
-        };
+    // Add retry logic here
+    retry: 2, // Will retry up to 2 times on failure
+    retryDelay: (attemptIndex) => {
+      // Use exponential backoff for retries
+      const delay = Math.pow(2, attemptIndex) * 1000; // 1s, 2s
+      console.log(`Itinerary generation failed. Retrying in ${delay / 1000}s... (Attempt ${attemptIndex + 1})`);
+      return delay;
+    },
+    onSuccess: (result) => {
+      if (result.success && result.data) {
+        // The generated itinerary data is in result.data
+        const generatedTrip = result.data;
 
-        const tripResponse = await apiRequest("POST", "/api/trips", tripData);
-        const trip = await tripResponse.json();
+        // Invalidate any queries that might show old trip lists
+        queryClient.invalidateQueries({ queryKey: ["trips"] });
 
-        queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-
+        // Show a success message
         toast({
           title: t("itinerary_generated"),
           description: t("itinerary_generated_success"),
         });
 
-        setLocation(`/itinerary/${trip.id}`);
+        // Navigate to the itinerary page and pass the generated data in the state
+        setLocation(`/itinerary/view`, { state: { trip: generatedTrip }, replace: true });
       }
     },
     onError: (error: any) => {
@@ -123,12 +116,16 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
         description: error.message || t("failed_to_generate_itinerary"),
         variant: "destructive",
       });
+      // On error, navigate back to the previous page (the planner form)
+      // The 'replace' option prevents the loading page from being in the history stack
+      setLocation(window.history.state?.prev || "/", { replace: true });
     },
   });
 
   const onSubmit = (data: TripPlanningRequest) => {
-    console.log(data);
-    // generateItineraryMutation.mutate(data);
+    // Immediately navigate to the loading page
+    setLocation("/generating-itinerary");
+    generateItineraryMutation.mutate(data);
   };
 
   const FormContent = (

@@ -1,6 +1,6 @@
 import { GoogleMapsApi } from "@/lib/google-maps-api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { detectCurrencyFromLocation } from "@/lib/currency";
 
 export const googleMapsApi = new GoogleMapsApi(
@@ -97,39 +97,13 @@ export const getCurrentPosition = (): Promise<GeolocationPosition> => {
       return reject(new Error("Geolocation is not supported by this browser"));
     }
 
-    // First, try for a high-accuracy position with a shorter timeout.
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log("Geolocation position (high accuracy):", position);
-        resolve(position);
-      },
-      (error) => {
-        console.warn(
-          `High accuracy position error: ${error.message}. Falling back.`
-        );
-        // If high-accuracy fails, fall back to a low-accuracy request.
-        // This is faster and more likely to succeed on desktops or with poor GPS.
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            console.log(
-              "Geolocation position (low accuracy fallback):",
-              position
-            );
-            resolve(position);
-          },
-          (error) => {
-            // If both fail, reject the promise.
-            reject(new Error(error.message));
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 20000, // 20 seconds
-            maximumAge: 300000, // 5 minutes
-          }
-        );
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // 10-second timeout for high accuracy
-    );
+    // Let the browser handle accuracy and caching with a reasonable timeout.
+    // It will attempt high accuracy and fall back if needed.
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 15000, // 15 seconds
+      maximumAge: 60000, // 1 minute
+    });
   });
 };
 
@@ -138,10 +112,6 @@ export const getCurrentPosition = (): Promise<GeolocationPosition> => {
  * @returns Detected location data or default values
  */
 export const detectUserLocation = async () => {
-  if (localStorage.getItem("geolocation_denied")) {
-    throw new Error("Location access denied by user");
-  }
-
   try {
     const position = await getCurrentPosition();
     console.log("Detected position:", position);
@@ -189,6 +159,12 @@ export const detectUserLocation = async () => {
     console.error("Location detection error:", error);
     if (error instanceof Error && error.message.includes("denied")) {
       localStorage.setItem("geolocation_denied", "true");
+      // We throw a more specific error to be handled by the UI
+      throw new Error(
+        "Location access has been denied. Please enable it in your browser settings."
+      );
+    } else if (localStorage.getItem("geolocation_denied")) {
+      throw new Error("Location access was previously denied.");
     }
     throw error; // Re-throw the error so React Query can handle it
   }

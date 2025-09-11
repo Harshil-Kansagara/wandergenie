@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { insertTripSchema } from "@shared/schema";
+// import { insertTripSchema } from "@shared/schema";
 
 const router = Router();
 
 // Save trip
 router.post("/", async (req, res) => {
-  try {
-    const tripData = insertTripSchema.parse(req.body);
-    const trip = await storage.createTrip(tripData);
-    res.json(trip);
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
+  // try {
+  //   const tripData = insertTripSchema.parse(req.body);
+  //   const trip = await storage.createTrip(tripData);
+  //   res.json(trip);
+  // } catch (error: any) {
+  //   res.status(400).json({ error: error.message });
+  // }
 });
 
 // Get all trips for a user

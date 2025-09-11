@@ -8,33 +8,19 @@ import { useTranslation } from "@/hooks/use-translation";
 
 interface CostBreakdownProps {
   costBreakdown?: any;
-  totalCost?: string;
+  totalCost?: number | string;
   currency?: string;
 }
 
-export default function CostBreakdown({ costBreakdown, totalCost, currency = "USD" }: CostBreakdownProps) {
+export default function CostBreakdown({ costBreakdown, totalCost, currency = "USD" }: Readonly<CostBreakdownProps>) {
   const { convertCurrency, formatCurrency } = useCurrency();
   const { t } = useTranslation();
-
-  // Mock data if not provided
-  const breakdown = costBreakdown || {
-    accommodation: "2800",
-    activities: "1550",
-    transport: "820",
-    food: "980",
-    miscellaneous: "350"
-  };
-
-  const total = totalCost || "6500";
   
-  const calculateTotal = () => {
-    return Object.values(breakdown).reduce((sum: number, value: unknown) => {
-      const stringValue = String(value);
-      return sum + parseInt(stringValue.replace(/[^\d]/g, '')) || 0;
-    }, 0);
-  };
-
-  const actualTotal = calculateTotal();
+  if (!costBreakdown) {
+    return null; // Don't render if there's no cost data
+  }
+  
+  const actualTotal = Number(totalCost) || 0;
 
   return (
     <Card className="elevation-2 sticky top-24">
@@ -44,35 +30,43 @@ export default function CostBreakdown({ costBreakdown, totalCost, currency = "US
       <CardContent className="space-y-6">
         {/* Cost Breakdown */}
         <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('accommodation')}</span>
-            <span className="font-medium text-foreground" data-testid="text-cost-accommodation">
-              {formatCurrency(parseInt(String(breakdown.accommodation)) || 0, currency)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('activities_tours')}</span>
-            <span className="font-medium text-foreground" data-testid="text-cost-activities">
-              {formatCurrency(parseInt(breakdown.activities), currency)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('transportation')}</span>
-            <span className="font-medium text-foreground" data-testid="text-cost-transport">
-              {formatCurrency(parseInt(breakdown.transport), currency)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t('meals')}</span>
-            <span className="font-medium text-foreground" data-testid="text-cost-meals">
-              {formatCurrency(parseInt(breakdown.food), currency)}
-            </span>
-          </div>
-          {breakdown.miscellaneous && (
+          {costBreakdown.accommodation > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('accommodation')}</span>
+              <span className="font-medium text-foreground" data-testid="text-cost-accommodation">
+                {formatCurrency(costBreakdown.accommodation, currency)}
+              </span>
+            </div>
+          )}
+          {costBreakdown.activities > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('activities_tours')}</span>
+              <span className="font-medium text-foreground" data-testid="text-cost-activities">
+                {formatCurrency(costBreakdown.activities, currency)}
+              </span>
+            </div>
+          )}
+          {costBreakdown.transport > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('transportation')}</span>
+              <span className="font-medium text-foreground" data-testid="text-cost-transport">
+                {formatCurrency(costBreakdown.transport, currency)}
+              </span>
+            </div>
+          )}
+          {costBreakdown.food > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('meals')}</span>
+              <span className="font-medium text-foreground" data-testid="text-cost-meals">
+                {formatCurrency(costBreakdown.food, currency)}
+              </span>
+            </div>
+          )}
+          {costBreakdown.miscellaneous > 0 && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('miscellaneous')}</span>
               <span className="font-medium text-foreground" data-testid="text-cost-misc">
-                {formatCurrency(parseInt(breakdown.miscellaneous), currency)}
+                {formatCurrency(costBreakdown.miscellaneous, currency)}
               </span>
             </div>
           )}

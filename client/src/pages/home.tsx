@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Compass, Map as MapIcon, Backpack } from "lucide-react";
 import { ApiClient } from "@/lib/api-client";
@@ -136,12 +137,12 @@ function PersonasGrid() {
   if (isLoadingPersonas) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Card key={`skeleton-persona-${index}`}>
             <CardContent className="p-6 flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-muted rounded-full mb-4" />
-              <div className="h-4 bg-muted rounded mb-2 w-4/5" />
-              <div className="h-3 bg-muted rounded w-2/3" />
+              <Skeleton className="w-20 h-20 rounded-full mb-4" />
+              <Skeleton className="h-4 mb-2 w-4/5" />
+              <Skeleton className="h-3 w-2/3" />
             </CardContent>
           </Card>
         ))}
