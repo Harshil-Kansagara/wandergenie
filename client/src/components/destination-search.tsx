@@ -54,7 +54,6 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     }
     
     try {
-     
       const inputData={input};
       const response = await apiRequest("POST", "/api/places/autocomplete", inputData);
       const jsonResponse = await response.json();

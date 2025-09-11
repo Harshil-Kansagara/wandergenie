@@ -23,6 +23,9 @@ router.post("/autocomplete", async (req, res) => {
       return res.status(400).json({ error: "Input required" });
     }
 
+    const langHeader = req.headers["accept-language"] || "en";
+    const languageCode = langHeader.split(",")[0].split("-")[0];
+
     const googlePlacesApiKey = process.env.GOOGLE_MAPS_API_KEY;
 
     if (!googlePlacesApiKey) {
@@ -41,11 +44,10 @@ router.post("/autocomplete", async (req, res) => {
       ];
       return res.json({ predictions: mockPlaces, status: "OK" });
     }
-
     const placesApiUrl = `https://places.googleapis.com/v1/places:autocomplete`;
     const response = await axios.post(
       placesApiUrl,
-      { input: input },
+      { input: input, languageCode: languageCode },
       {
         headers: {
           "Content-Type": "application/json",

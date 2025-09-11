@@ -11,235 +11,25 @@ export interface Language {
 
 export const SUPPORTED_LANGUAGES: Language[] = [
   { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
-  { code: "es", name: "Spanish", nativeName: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷" },
-  { code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪" },
-  { code: "it", name: "Italian", nativeName: "Italiano", flag: "🇮🇹" },
-  { code: "pt", name: "Portuguese", nativeName: "Português", flag: "🇵🇹" },
-  { code: "ru", name: "Russian", nativeName: "Русский", flag: "🇷🇺" },
-  { code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵" },
-  { code: "ko", name: "Korean", nativeName: "한국어", flag: "🇰🇷" },
-  { code: "zh", name: "Chinese", nativeName: "中文", flag: "🇨🇳" },
   { code: "hi", name: "Hindi", nativeName: "हिंदी", flag: "🇮🇳" },
-  { code: "ar", name: "Arabic", nativeName: "العربية", flag: "🇸🇦" },
-  { code: "th", name: "Thai", nativeName: "ไทย", flag: "🇹🇭" },
-  { code: "vi", name: "Vietnamese", nativeName: "Tiếng Việt", flag: "🇻🇳" },
-  { code: "nl", name: "Dutch", nativeName: "Nederlands", flag: "🇳🇱" },
-  { code: "sv", name: "Swedish", nativeName: "Svenska", flag: "🇸🇪" },
-  { code: "no", name: "Norwegian", nativeName: "Norsk", flag: "🇳🇴" },
-  { code: "da", name: "Danish", nativeName: "Dansk", flag: "🇩🇰" },
-  { code: "pl", name: "Polish", nativeName: "Polski", flag: "🇵🇱" },
-  { code: "tr", name: "Turkish", nativeName: "Türkçe", flag: "🇹🇷" },
+  { code: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
+  { code: "bn", name: "Bengali", nativeName: "বাংলা", flag: "🇮🇳" },
 ];
-
-// Base English translations
-export const EN_TRANSLATIONS: TranslationStrings = {
-  // Navigation
-  destinations: "Destinations",
-  experiences: "Experiences",
-  hotels: "Hotels",
-  flights: "Flights",
-  sign_in: "Sign In",
-  sign_up: "Sign Up",
-  back: "Back",
-
-  // Hero Section
-  hero_headline: "Don't Just Travel. Discover Your Journey.",
-  hero_subheadline:
-    "Your AI-powered adventure starts with one simple quiz. Find out what kind of traveler you are and unlock a personalized itinerary tailored just for you.",
-  hero_cta: "Start Your Adventure!",
-
-  // How it works
-  how_it_works_title: "How It Works: The Simple Breakdown",
-  how_it_works_step1_title: "Discover Your Persona",
-  how_it_works_step1_desc:
-    "Take our fun, interactive quiz to reveal your unique travel personality—from Thrill-Seeker to Cultural Crusader.",
-  how_it_works_step2_title: "Get a Personalized Itinerary",
-  how_it_works_step2_desc:
-    "Our AI, powered by your persona, crafts a day-by-day itinerary with activities, places to eat, and hidden gems.",
-  how_it_works_step3_title: "Live Your Story",
-  how_it_works_step3_desc:
-    "Your itinerary is more than a list—it's a story. Embark on a journey designed just for you, with real-time updates and seamless navigation.",
-
-  // Personas
-  personas_title: "Find Your Inner Traveler.",
-  personas_desc:
-    "We all have a unique way of seeing the world. Which one are you?",
-  persona_urban_explorer: "The Urban Explorer",
-  persona_urban_explorer_tagline: "Finding the city's hidden pulse.",
-  persona_thrill_seeker: "The Thrill-Seeker",
-  persona_thrill_seeker_tagline: "Chasing the next adrenaline rush.",
-  persona_cultural_crusader: "The Cultural Crusader",
-  persona_cultural_crusader_tagline: "Living and breathing history.",
-  persona_foodie_fanatic: "The Foodie Fanatic",
-  persona_foodie_fanatic_tagline: "Tasting the world, one bite at a time.",
-
-  // Footer
-  footer_about_us: "About Us",
-  footer_contact: "Contact",
-  footer_privacy_policy: "Privacy Policy",
-  footer_final_cta: "Start Your Adventure!",
-
-  // Trip Planning Form
-  create_your_perfect_trip: "Create Your Perfect Trip",
-  ai_powered_planning_description:
-    "Tell us about your travel preferences and let our AI create a personalized itinerary just for you.",
-  destination: "Destination",
-  where_want_to_go: "e.g., Paris, France",
-  start_date: "Start Date",
-  end_date: "End Date",
-  your_trip_budget: "Your Trip Budget",
-  add_trip_preferences: "Add Trip Preferences",
-  group_size: "Group Size",
-  group_size_solo: "Solo",
-  group_size_couple: "Couple",
-  group_size_family: "Family",
-  group_size_group: "Group (4+)",
-  accommodation: "Accommodation",
-  accommodation_luxury: "Luxury Hotel",
-  accommodation_boutique: "Boutique/Homestay",
-  accommodation_hostel: "Hostel/Camping",
-  transport: "Transport",
-  transport_public: "Public/Local",
-  transport_private: "Private Car/Cab",
-  transport_rental: "Motorcycle/Scooter",
-  generating: "Generating...",
-  generate_trip: "Generate Trip",
-
-  // Itinerary
-  personalized_itinerary_description:
-    "AI-crafted journey perfectly tailored for your adventure",
-  day: "Day",
-  travelers: "travelers",
-  days: "days",
-  no_itinerary_generated: "No itinerary has been generated yet.",
-  view_complete_itinerary: "View Complete Itinerary",
-  trip_summary: "Trip Summary",
-  activities_tours: "Activities & Tours",
-  transportation: "Transportation",
-  meals: "Meals",
-  miscellaneous: "Miscellaneous",
-  total_2_people: "Total (2 people)",
-  within_budget_range: "Within your budget range",
-  book_complete_trip: "Book Complete Trip",
-  save: "Save",
-  share: "Share",
-  budget_friendly: "Budget Friendly",
-  ai_insights: "AI Insights",
-  quick_actions: "Quick Actions",
-  modify_itinerary: "Modify Itinerary",
-  add_experience: "Add Experience",
-  view_on_map: "View on Map",
-  trip_not_found: "Trip not found",
-  back_to_home: "Back to Home",
-  ai_weather_alert:
-    "AI Alert: Weather changes detected, activities adjusted accordingly.",
-
-  // Weather
-  weather_forecast: "Weather Forecast",
-  sunny: "Sunny",
-  cloudy: "Cloudy",
-  partly_cloudy: "Partly Cloudy",
-  rainy: "Rainy",
-  snowy: "Snowy",
-  "7_day_forecast": "7-Day Forecast",
-  rain_expected_pack_umbrella:
-    "Rain expected. Pack light rain gear for outdoor activities.",
-
-  // Map
-  route_map: "Route Map",
-  satellite: "Satellite",
-  map: "Map",
-  total_distance: "Total Distance",
-
-  // Dashboard
-  new_trip: "New Trip",
-  your_trips: "Your Trips",
-  manage_your_travel_plans:
-    "Manage and view all your travel plans in one place",
-  no_trips_yet: "No trips yet",
-  start_planning_first_trip:
-    "Start planning your first adventure with our AI-powered trip planner",
-  create_your_first_trip: "Create Your First Trip",
-  draft: "Draft",
-  confirmed: "Confirmed",
-  completed: "Completed",
-
-  // Booking
-  complete_booking: "Complete Your Booking",
-  selection: "Selection",
-  payment: "Payment",
-  confirmation: "Confirmation",
-  booking_summary: "Booking Summary",
-  base_itinerary: "Base Itinerary",
-  travel_insurance: "Travel Insurance",
-  total_amount: "Total Amount",
-  proceed_to_payment: "Proceed to Payment",
-  confirm_booking: "Confirm Booking",
-  back_to_selection: "Back to Selection",
-  processing: "Processing...",
-  payment_details: "Payment Details",
-  cardholder_name: "Cardholder Name",
-  enter_full_name: "Enter full name",
-  card_number: "Card Number",
-  month: "Month",
-  year: "Year",
-  cvv: "CVV",
-  other_payment_options: "Other Payment Options",
-  travel_protection: "Travel Protection",
-  comprehensive_travel_insurance: "Comprehensive Travel Insurance",
-  trip_cancellation_medical_baggage:
-    "Trip cancellation, medical, & baggage protection",
-  booking_confirmed: "Booking Confirmed!",
-  booking_confirmation_sent:
-    "Confirmation details have been sent to your email.",
-  booking_confirmation_details:
-    "Your trip has been successfully booked. You will receive confirmation details shortly.",
-  booking_reference: "Booking Reference",
-  view_booking_details: "View Booking Details",
-  booking_failed: "Booking Failed",
-  please_try_again: "Please try again later.",
-
-  // Activity Types
-  meal: "Meal",
-  total: "Total",
-
-  // Popular Destinations
-  trending_destinations: "Trending Destinations",
-  discover_popular_experiences:
-    "Discover the world's most popular travel experiences powered by AI recommendations",
-
-  // Trust Indicators
-  trips_planned: "Trips Planned",
-  happy_travelers: "Happy Travelers",
-  average_rating: "Average Rating",
-
-  // Footer
-  services: "Services",
-  support: "Support",
-
-  // Messages
-  itinerary_generated: "Itinerary Generated",
-  itinerary_generated_success:
-    "Your personalized itinerary has been created successfully!",
-  error: "Error",
-  failed_to_generate_itinerary:
-    "Failed to generate itinerary. Please try again.",
-};
 
 // Translation cache
 const translationCache = new Map<string, TranslationStrings>();
 
 export class TranslationService {
   private currentLanguage: string = "en";
-  private translations: TranslationStrings = EN_TRANSLATIONS;
-  private readonly fallbackTranslations: TranslationStrings = EN_TRANSLATIONS;
+  private translations: TranslationStrings = {};
+  private  fallbackTranslations: TranslationStrings = {};
 
   /**
    * Initializes the service with the user's preferred or detected language.
    * This should be called once when the application loads.
    */
   async init(): Promise<void> {
+    await this.loadTranslations("en", true);
     const savedLanguage = localStorage.getItem("preferred_language");
     if (savedLanguage && this.isLanguageSupported(savedLanguage)) {
       await this.setLanguage(savedLanguage);
@@ -247,9 +37,12 @@ export class TranslationService {
       const browserLang = navigator.language.split("-")[0];
       if (this.isLanguageSupported(browserLang)) {
         await this.setLanguage(browserLang);
+      } else {
+        await this.setLanguage("en");
       }
     }
   }
+
 
   isLanguageSupported(languageCode: string): boolean {
     return SUPPORTED_LANGUAGES.some((lang) => lang.code === languageCode);
@@ -266,7 +59,7 @@ export class TranslationService {
     this.currentLanguage = languageCode;
 
     if (languageCode === "en") {
-      this.translations = EN_TRANSLATIONS;
+      this.translations = this.fallbackTranslations;
       return this.translations;
     }
 
@@ -280,11 +73,10 @@ export class TranslationService {
       // Try to load translations from API or generate them
       const translations = await this.loadTranslations(languageCode);
       this.translations = {
-        ...EN_TRANSLATIONS,
+        ...this.fallbackTranslations,
         ...translations,
       };
       translationCache.set(languageCode, this.translations);
-
       // Cache in localStorage for offline use
       localStorage.setItem(
         `translations_${languageCode}`,
@@ -303,7 +95,7 @@ export class TranslationService {
       } catch (cacheError) {
         console.error("Failed to load cached translations:", cacheError);
         // Fall back to English
-        this.translations = EN_TRANSLATIONS;
+        this.translations = this.fallbackTranslations;
       }
     }
 
@@ -317,100 +109,29 @@ export class TranslationService {
    * @param languageCode - The language code for the translations.
    */
   setTranslations(translations: TranslationStrings, languageCode: string) {
-    this.translations = { ...EN_TRANSLATIONS, ...translations };
+    this.translations = { ...this.fallbackTranslations, ...translations };
     this.currentLanguage = languageCode;
     translationCache.set(languageCode, this.translations);
   }
 
+
   /**
-   * Loads translations for a given language.
+   * Loads translations for a given language from a JSON file.
    * @param languageCode The language code (e.g., "es", "fr").
+   * @param isFallback A flag to determine if this is the fallback language.
    * @returns A promise that resolves to the translation strings.
    */
-  async loadTranslations(languageCode: string): Promise<TranslationStrings> {
-    // In a real application, you would call a translation API here
-    // For now, we'll provide some basic translations for major languages
-    const basicTranslations: { [key: string]: Partial<TranslationStrings> } = {
-      // Spanish translations
-      es: {
-        destinations: "Destinos",
-        experiences: "Experiencias",
-        hotels: "Hoteles",
-        flights: "Vuelos",
-        sign_in: "Iniciar Sesión",
-        discover_world_with_ai: "Descubre el Mundo con IA",
-        plan_perfect_trip: "Planifica tu Viaje Perfecto",
-        from: "Desde",
-        destination_worldwide: "Destino Mundial",
-        generate_ai_itinerary: "Generar Itinerario con IA",
-        save: "Guardar",
-        share: "Compartir",
-      },
-      // French translations
-      fr: {
-        destinations: "Destinations",
-        experiences: "Expériences",
-        hotels: "Hôtels",
-        flights: "Vols",
-        sign_in: "Se Connecter",
-        discover_world_with_ai: "Découvrez le Monde avec l'IA",
-        plan_perfect_trip: "Planifiez votre Voyage Parfait",
-        from: "De",
-        destination_worldwide: "Destination Mondiale",
-        generate_ai_itinerary: "Générer un Itinéraire IA",
-        save: "Sauvegarder",
-        share: "Partager",
-      },
-      // German translations
-      de: {
-        destinations: "Reiseziele",
-        experiences: "Erfahrungen",
-        hotels: "Hotels",
-        flights: "Flüge",
-        sign_in: "Anmelden",
-        discover_world_with_ai: "Entdecke die Welt mit KI",
-        plan_perfect_trip: "Plane deine perfekte Reise",
-        from: "Von",
-        destination_worldwide: "Weltweites Reiseziel",
-        generate_ai_itinerary: "KI-Reiseplan erstellen",
-        save: "Speichern",
-        share: "Teilen",
-      },
-      // Japanese translations
-      ja: {
-        destinations: "目的地",
-        experiences: "体験",
-        hotels: "ホテル",
-        flights: "フライト",
-        sign_in: "サインイン",
-        discover_world_with_ai: "AIで世界を発見",
-        plan_perfect_trip: "完璧な旅行を計画",
-        from: "から",
-        destination_worldwide: "世界の目的地",
-        generate_ai_itinerary: "AI旅程を生成",
-        save: "保存",
-        share: "共有",
-      },
-      // Chinese translations
-      zh: {
-        destinations: "目的地",
-        experiences: "体验",
-        hotels: "酒店",
-        flights: "航班",
-        sign_in: "登录",
-        discover_world_with_ai: "用AI发现世界",
-        plan_perfect_trip: "规划完美旅行",
-        from: "从",
-        destination_worldwide: "全球目的地",
-        generate_ai_itinerary: "生成AI行程",
-        save: "保存",
-        share: "分享",
-      },
-    };
-
-    // Return the translations for the requested language, or an empty object
-    // if no translations are available for that language code.
-    return (basicTranslations[languageCode] || {}) as TranslationStrings;
+  async loadTranslations(languageCode: string, isFallback: boolean = false): Promise<TranslationStrings> {
+    try {
+      const translations = await import(`@/locales/${languageCode}.json`);
+      if (isFallback) {
+        this.fallbackTranslations = translations.default || translations;
+      }
+      return translations.default || translations;
+    } catch (error) {
+      console.error(`Failed to load translations for ${languageCode}:`, error);
+      return {};
+    }
   }
 
   translate(key: string, params?: { [key: string]: string }): string {
@@ -468,25 +189,10 @@ export class TranslationService {
     // Map language codes to locales
     const localeMap: { [key: string]: string } = {
       en: "en-US",
-      es: "es-ES",
-      fr: "fr-FR",
-      de: "de-DE",
-      it: "it-IT",
-      pt: "pt-PT",
-      ru: "ru-RU",
-      ja: "ja-JP",
-      ko: "ko-KR",
-      zh: "zh-CN",
       hi: "hi-IN",
-      ar: "ar-SA",
-      th: "th-TH",
-      vi: "vi-VN",
-      nl: "nl-NL",
-      sv: "sv-SE",
-      no: "nb-NO",
-      da: "da-DK",
-      pl: "pl-PL",
-      tr: "tr-TR",
+      pa: "pa-IN",
+      bn: "bn-IN",
+
     };
 
     return localeMap[this.currentLanguage] || "en-US";
