@@ -73,7 +73,11 @@ async function generateSingleDay(
 
     const parsedActivities = parseItineraryDay(response.text);
     enrichedDay = await enrichItineraryDay(
-      { day: dayNumber, module: module.name, activities: parsedActivities },
+      {
+        day: dayNumber,
+        module: module.name,
+        activities: parsedActivities,
+      },
       planningData
     );
 
@@ -93,7 +97,15 @@ async function generateSingleDay(
     }
   }
 
-  return { enrichedDay, dayCost };
+  return {
+    enrichedDay: {
+      ...(enrichedDay || { activities: [] }),
+      day: dayNumber,
+      module: module.name,
+      narrative: module.narrative,
+    },
+    dayCost,
+  };
 }
 
 /**

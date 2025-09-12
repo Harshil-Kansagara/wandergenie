@@ -19,7 +19,7 @@ interface MapComponentProps {
   className?: string;
 }
 
-export default function MapComponent({ destination, waypoints = [], className }: MapComponentProps) {
+export default function MapComponent({ destination, waypoints = [], className }: Readonly<MapComponentProps>) {
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);

@@ -36,7 +36,7 @@ export interface ItineraryDay {
   day: number;
   module: string;
   narrative?: string;
-  activities: Activity[];
+  activities: EnrichedActivity[];
 }
 
 export interface EnrichedActivity extends Activity {
