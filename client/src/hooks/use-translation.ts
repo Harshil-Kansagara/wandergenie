@@ -39,9 +39,9 @@ export function useTranslation() {
   const { isLoading, error } = useQuery({
     queryKey: ["translations", language],
     queryFn: () => translationService.setLanguage(language),
-    // Keep translations fresh, but don't refetch too aggressively
+    // Keep translations fresh, but don't refetcivelh too aggressy
     staleTime: 60 * 60 * 1000, // 1 hour
-    enabled: language !== "en", // No need to fetch for English, it's built-in
+    enabled: true, 
   });
 
   const setLanguage = useCallback(
@@ -60,6 +60,7 @@ export function useTranslation() {
         queryKey: ["translations", languageCode],
         queryFn: () => translationService.setLanguage(languageCode),
       });
+      window.location.reload();
     },
     [queryClient]
   );

@@ -6,6 +6,8 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/use-auth";
+import { useTranslation } from "@/hooks/use-translation";
+
 
 interface SignInProps {
   onSuccess: () => void;
@@ -17,6 +19,8 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +62,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('email')} </Label>
         <Input
           id="email"
           type="email"
@@ -70,7 +74,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
       </div>
       <div className="grid gap-2">
         <div className="flex items-center">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('password')} </Label>
         </div>
         <Input
           id="password"
@@ -82,17 +86,17 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
       </div>
       {isSignUp ? (
         <Button onClick={handleSignUp} type="submit" className="w-full">
-          Sign Up
+          {t('sign_up')} 
         </Button>
       ) : (
         <Button onClick={handleSignIn} type="submit" className="w-full">
-          Sign In
+         {t('sign_in')} 
         </Button>
       )}
       <div className="mt-4 text-center text-sm">
-        {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+        {isSignUp ?  t('already_account') :  t('no_account')}{" "}
         <button onClick={() => setIsSignUp(!isSignUp)} className="underline">
-          {isSignUp ? "Sign in" : "Sign up"}
+          {isSignUp ? t('sign_in') : t('sign_up')}
         </button>
       </div>
     </div>

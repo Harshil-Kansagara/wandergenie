@@ -10,6 +10,8 @@ import TripForm from "@/components/trip-form";
 import { ApiClient } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-error";
 import { QuizQuestion, QuizOption, Persona } from "@shared/schema";
+import { useTranslation } from "@/hooks/use-translation";
+
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
@@ -65,6 +67,8 @@ export default function QuizPage() {
   const [direction, setDirection] = useState(1);
   const [dominantPersona, setDominantPersona] = useState<string | null>(null);
   const [isRestarting, setIsRestarting] = useState(false);
+  const { t, language } = useTranslation();
+
 
   const mutation = useMutation<any, ApiError, Record<string, any>>({
     mutationFn: calculatePersona,
@@ -125,7 +129,7 @@ export default function QuizPage() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading Quiz...</div>;
+    return <div className="flex justify-center items-center h-screen">{t('loading_quiz')} ...</div>;
   }
 
   if (error) {
@@ -160,7 +164,7 @@ export default function QuizPage() {
       );
     }
 
-    return isLastQuestion ? "Done" : "Continue";
+    return isLastQuestion ? t('done') :  t('continue');
   };
 
   const renderQuizResult = () => {
@@ -182,26 +186,26 @@ export default function QuizPage() {
         <div className="text-center">
           <PartyPopper className="h-16 w-16 text-primary mx-auto mb-6" />
           <CardHeader className="p-0">
-            <p className="text-lg font-medium text-muted-foreground">You are a...</p>
+            <p className="text-lg font-medium text-muted-foreground"> {t('you_are')}...</p>
             <h2 className="text-4xl font-bold tracking-tight text-primary mb-4">
               {personaDetails?.name || dominantPersona}
             </h2>
             <p className="max-w-2xl mx-auto text-muted-foreground mb-8">
               {personaDetails?.description}
               <br />
-              Now, let's craft your perfect journey below.
+              {t('lets_craft_journey')}            
             </p>
           </CardHeader>
           <Separator className="my-8" />
           <div className="px-4 text-left">
             <h3 className="text-2xl font-bold text-center mb-2">
-              Create Your Perfect Trip
+              {t('create_your_perfect_trip')}
             </h3>
             <TripForm persona={dominantPersona} renderInCard={false} />
           </div>
 
           <div className="mt-12 text-center">
-            <Button variant="outline" onClick={handleRestart}>Restart Quiz</Button>
+            <Button variant="outline" onClick={handleRestart}> {t('restart_quiz')}</Button>
           </div>
         </div>
       );
@@ -255,12 +259,12 @@ export default function QuizPage() {
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-muted-foreground">
-                      Question {currentQuestionIndex + 1} of {questions.length}
+                       {t('question')} {currentQuestionIndex + 1} of {questions.length}
                     </span>
                     {currentQuestionIndex > 0 && (
                       <Button variant="ghost" size="sm" onClick={handleBack}>
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
+                        {t('back')}
                       </Button>
                     )}
                   </div>

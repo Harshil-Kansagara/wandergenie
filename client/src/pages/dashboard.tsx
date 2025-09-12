@@ -27,17 +27,17 @@ export default function Dashboard() {
   });
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading trips...</div>;
+    return <div className="text-center py-12">{t('loading_trips')}...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">My Trips</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t('my_trips')}</h1>
           <Button asChild>
             <Link href="/">
-              <PlusCircle className="mr-2 h-4 w-4" /> Create New Trip
+              <PlusCircle className="mr-2 h-4 w-4" /> {t('create_new_trip')}
             </Link>
           </Button>
         </div>
@@ -45,7 +45,7 @@ export default function Dashboard() {
         {!trips || trips.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-gray-600">You haven't created any trips yet.</p>
+              <p className="text-gray-600">{t('no_trips')}</p>
             </CardContent>
           </Card>
         ) : (

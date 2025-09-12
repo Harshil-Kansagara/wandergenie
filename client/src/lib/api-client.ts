@@ -1,4 +1,5 @@
 import { ApiError } from "./api-error";
+import { translationService } from "./translation";
 
 /**
  * A simple API client for making HTTP requests.
@@ -18,6 +19,7 @@ export class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {
       "Content-Type": "application/json",
+      "Accept-Language": translationService.getCurrentLanguage(),
       ...(this.apiKey && { Authorization: `Bearer ${this.apiKey}` }),
       ...options.headers,
     };
