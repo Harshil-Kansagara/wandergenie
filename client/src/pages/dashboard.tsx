@@ -7,18 +7,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { t } from "@/lib/translation";
 import { useQuery } from "@tanstack/react-query";
+import { ApiResponse } from "../lib/api-response.ts";
 import { ApiClient } from "@/lib/api-client.ts";
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
-function fetchTrips(userId: string | undefined) {
+async function fetchTrips(userId: string | undefined): Promise<Trip[]> {
   if (!userId) return [];
-  return apiClient.get(`/trips/${userId}`);
+  const response: ApiResponse<Trip[]> = await apiClient.get(`/api/trips/${userId}`);
+  return response.data || [];
 }
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: trips, isLoading } = useQuery<Trip[]>({
+  const { data: trips, isLoading } = useQuery({
     queryKey: ["trips", user?.uid],
     queryFn: () => fetchTrips(user?.uid),
     enabled: !!user,

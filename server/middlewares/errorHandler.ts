@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { ApiResponse } from "../utils/api-response";
 
 /**
  * A custom error class that includes a status code.
@@ -26,10 +27,7 @@ export const errorHandler = (
   const message =
     err instanceof AppError ? err.message : "An unexpected error occurred.";
 
-  res.status(statusCode).json({
-    success: false,
-    error: message,
-    // Optionally include stack in development
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
+  const errorResponse = ApiResponse.error(message, statusCode);
+
+  res.status(statusCode).json(errorResponse);
 };

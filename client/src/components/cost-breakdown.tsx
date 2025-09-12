@@ -5,9 +5,10 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard, Heart, Share2, DollarSign } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
+import { CostBreakdown as CostBreakdownType } from "@shared/schema";
 
 interface CostBreakdownProps {
-  costBreakdown?: any;
+  costBreakdown?: CostBreakdownType | null;
   totalCost?: number | string;
   currency?: string;
 }

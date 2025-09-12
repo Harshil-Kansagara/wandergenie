@@ -53,6 +53,16 @@ export interface EnrichedActivity extends Activity {
   };
 }
 
+export interface CostBreakdown {
+  accommodation: number;
+  activities: number;
+  transport: number;
+  food: number;
+  miscellaneous: number;
+  total: string;
+  isOverBudget: boolean;
+  overageAmount: number;
+}
 // End of Itinerary-related types
 
 // Firebase-based types (mirroring seed data structure)
@@ -84,7 +94,7 @@ export interface Trip {
   itinerary?: {
     days: ItineraryDay[];
   } | null;
-  costBreakdown?: any | null;
+  costBreakdown?: CostBreakdown | null;
   status: "draft" | "confirmed" | "completed";
   createdAt: Date;
   updatedAt: Date;
@@ -144,3 +154,5 @@ export interface ItineraryModule {
   activities: ModuleActivity[];
   applicable_seasons: string[];
 }
+
+// Types

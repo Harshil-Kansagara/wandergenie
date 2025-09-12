@@ -46,7 +46,6 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
   const { currency } = useCurrency();
   const { t, language } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const { user } = useAuth();
 
   const getTodayString = () => {
     return new Date().toISOString().split("T")[0];

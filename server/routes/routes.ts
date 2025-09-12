@@ -5,6 +5,7 @@ import placesRoutes from "./places";
 import personaRoutes from "./personas";
 import utilityRoutes from "./utility";
 import quizRoutes from "./quiz";
+import destinationsRoutes from "./destinations";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use("/places", placesRoutes);
 router.use("/personas", personaRoutes);
 router.use("/utility", utilityRoutes);
 router.use("/quiz", quizRoutes);
+router.use("/destinations", destinationsRoutes);
 
 // A simple health check endpoint
 router.get("/health", (_req, res) => {

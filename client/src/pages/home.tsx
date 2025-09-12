@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Compass, Map as MapIcon, Backpack } from "lucide-react";
 import { ApiClient } from "@/lib/api-client";
+import { Persona } from "@shared/schema";
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
@@ -128,7 +129,7 @@ export default function Home() {
 }
 
 function PersonasGrid() {
-  const { data: personas, isLoading: isLoadingPersonas } = useQuery({
+  const { data: apiResponse, isLoading: isLoadingPersonas } = useQuery({
     queryKey: ["personas"],
     queryFn: fetchPersonas,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -152,7 +153,7 @@ function PersonasGrid() {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      {(personas as any[])?.map((persona: any) => (
+      {(apiResponse?.data as Persona[])?.map((persona) => (
         <Card key={persona.id} className="overflow-hidden elevation-2 hover:elevation-4 smooth-transition group cursor-pointer">
           <CardContent className="p-6 flex flex-col items-center text-center">
             <img src={persona.icon_url} alt={persona.name} className="w-20 h-20 mb-4" />

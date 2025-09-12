@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin } from "lucide-react";
+import { MapPin, Loader2, AlertTriangle } from "lucide-react";
+import { ApiResponse } from "@/lib/api-response";
 import { apiRequest } from "@/lib/queryClient";
 
 interface LatLng {
@@ -16,6 +17,16 @@ export interface DestinationData {
   latLng?: LatLng;
 }
 
+interface AutocompleteSuggestion {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+  latLng?: LatLng;
+}
+
 interface DestinationSearchProps {
   placeholder?: string;
   value?: string; 
@@ -24,7 +35,7 @@ interface DestinationSearchProps {
   "data-testid"?: string;
 }
 
-export default function DestinationSearch({ placeholder, value = "", onChange, className, "data-testid": testId }: DestinationSearchProps) {
+export default function DestinationSearch({ placeholder, value = "", onChange, className, "data-testid": testId }: Readonly<DestinationSearchProps>) {
   const [inputValue, setInputValue] = useState(value);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -49,14 +60,20 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     const [, params] = queryKey;
     const input = params;
     
-    if (!input) {
-      return { predictions: [] };
-    }
-    
     try {
-     
+      if (!input) {
+        // Return a valid ApiResponse structure for empty input
+        return {
+          success: true,
+          statusCode: 200,
+          data: { predictions: [] },
+          error: null,
+          timestamp: new Date().toISOString(),
+        } as ApiResponse<{ predictions: AutocompleteSuggestion[] }>;
+      }
       const inputData={input};
       const response = await apiRequest("POST", "/api/places/autocomplete", inputData);
+      // The response from apiRequest is already a JSON object if successful
       const jsonResponse = await response.json();
       return jsonResponse;
     } catch (error) {
@@ -65,14 +82,14 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     }
   };
 
-  const { data } = useQuery({
+  const { data: apiResponse, isFetching, error } = useQuery<ApiResponse<{ predictions: AutocompleteSuggestion[] }>>({
     queryKey: ["placesAutocomplete", debouncedValue],
     queryFn: fetchPlacesAutocomplete,
     enabled: debouncedValue.length > 2,
     staleTime: 5 * 60 * 1000,
   });
 
-  const suggestions = data?.predictions || [];
+  const suggestions = apiResponse?.data?.predictions || [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -81,7 +98,7 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
     onChange?.({ description: newValue, latLng: undefined }); 
   };
 
-  const handleSelectSuggestion = (suggestion: any) => {
+  const handleSelectSuggestion = (suggestion: AutocompleteSuggestion) => {
     const description = suggestion.description; 
     const latLng = suggestion.latLng;
 
@@ -102,40 +119,57 @@ export default function DestinationSearch({ placeholder, value = "", onChange, c
 
   return (
     <div className="relative">
-      <Input
-        data-testid={testId}
-        type="text"
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={handleInputChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className={cn("w-full", className)}
-      />
+      <div className="relative">
+        <Input
+          data-testid={testId}
+          type="text"
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={cn("w-full pr-8", className)}
+        />
+        {isFetching && (
+          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+      </div>
       
-      {showSuggestions && (suggestions as any[]).length > 0 && (
+      {showSuggestions && suggestions.length > 0 && (
         <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-60 overflow-y-auto elevation-8">
-          <div className="p-2">
-            {(suggestions as any[]).map((suggestion: any, index: number) => (
-              <div
-                key={suggestion.place_id || index}
-                className="flex items-center space-x-3 p-2 hover:bg-muted rounded-lg cursor-pointer"
-                onClick={() => handleSelectSuggestion(suggestion)}
-                data-testid={`suggestion-${index}`}
-              >
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    {suggestion.structured_formatting?.main_text || suggestion.description}
-                  </p>
-                  {suggestion.structured_formatting?.secondary_text && (
-                    <p className="text-xs text-muted-foreground">
-                      {suggestion.structured_formatting.secondary_text}
+          <ul className="p-2">
+            {suggestions.map((suggestion, index: number) => (
+              <li key={suggestion.place_id || index}>
+                <button
+                  type="button"
+                  className="w-full flex items-center space-x-3 p-2 hover:bg-muted rounded-lg cursor-pointer text-left"
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  data-testid={`suggestion-${index}`}
+                >
+                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {suggestion.structured_formatting?.main_text || suggestion.description}
                     </p>
-                  )}
-                </div>
-              </div>
+                    {suggestion.structured_formatting?.secondary_text && (
+                      <p className="text-xs text-muted-foreground">
+                        {suggestion.structured_formatting.secondary_text}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </li>
             ))}
+          </ul>
+        </Card>
+      )}
+      {error && (
+        <Card className="absolute top-full left-0 right-0 mt-1 z-50 elevation-8">
+          <div className="p-4 flex items-center text-sm text-destructive">
+            <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <p>
+              Could not fetch suggestions. Please check your connection and try again.
+            </p>
           </div>
         </Card>
       )}

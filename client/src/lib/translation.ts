@@ -410,7 +410,7 @@ export class TranslationService {
 
     // Return the translations for the requested language, or an empty object
     // if no translations are available for that language code.
-    return (basicTranslations[languageCode] || {}) as TranslationStrings;
+    return (basicTranslations[languageCode]?.data || {}) as TranslationStrings;
   }
 
   translate(key: string, params?: { [key: string]: string }): string {

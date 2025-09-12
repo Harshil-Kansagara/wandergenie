@@ -9,6 +9,7 @@ import { ArrowLeft, PartyPopper } from "lucide-react";
 import TripForm from "@/components/trip-form";
 import { ApiClient } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-error";
+import { QuizQuestion, QuizOption, Persona } from "@shared/schema";
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
@@ -27,7 +28,7 @@ function fetchPersonas() {
  * Calculates the user's persona based on their answers.
  * @param answers - A record of question IDs to selected option data.
  */
-function calculatePersona(answers: Record<string, any>) {
+function calculatePersona(answers: Record<string, QuizOption>) {
   console.log("answers", answers);
   return apiClient.post("/api/quiz/calculate-persona", { answers });
 }
@@ -48,19 +49,19 @@ const variants = {
 };
 
 export default function QuizPage() {
-  const { data: questions, isLoading, error } = useQuery<any[], ApiError>({
+  const { data: questionsResponse, isLoading, error } = useQuery<{ data: QuizQuestion[] }, ApiError>({
     queryKey: ["quizQuestions"],
     queryFn: fetchQuizQuestions,
   });
 
-  const { data: personas } = useQuery<any[]>({
+  const { data: personasResponse } = useQuery<{ data: Persona[] }>({
     queryKey: ["personas"],
     queryFn: fetchPersonas,
   });
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<Record<string, QuizOption>>({});
+  const [selectedOption, setSelectedOption] = useState<QuizOption | null>(null);
   const [direction, setDirection] = useState(1);
   const [dominantPersona, setDominantPersona] = useState<string | null>(null);
   const [isRestarting, setIsRestarting] = useState(false);
@@ -68,7 +69,7 @@ export default function QuizPage() {
   const mutation = useMutation<any, ApiError, Record<string, any>>({
     mutationFn: calculatePersona,
     onSuccess: (data) => {
-      setDominantPersona(data.persona);
+      setDominantPersona(data.data.persona);
     },
     // No need for onError here if we handle it directly from the mutation state,
     // but you could add global logic here too, e.g., for logging.
@@ -80,6 +81,7 @@ export default function QuizPage() {
       setDirection(1);
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
+      const questions = questionsResponse?.data;
       if (nextIndex === questions?.length) {
         mutation.mutate(answers);
       }
@@ -93,17 +95,18 @@ export default function QuizPage() {
     setDirection(-1);
     const prevIndex = currentQuestionIndex - 1;
     setCurrentQuestionIndex(prevIndex);
+    const questions = questionsResponse?.data;
 
     // Restore the selected option for the previous question
     const prevQuestionId = questions?.[prevIndex]?.id;
     const prevAnswer = prevQuestionId ? answers[prevQuestionId] : null;
 
-    setSelectedOption(prevAnswer?.option_text || null);
+    setSelectedOption(prevAnswer || null);
   };
 
-  const handleSelectOption = (questionId: string, option: any) => {
+  const handleSelectOption = (questionId: string, option: QuizOption) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
-    setSelectedOption(option.option_text);
+    setSelectedOption(option);
   };
 
   const handleRestart = () => {
@@ -138,11 +141,12 @@ export default function QuizPage() {
     return <div className="flex justify-center items-center h-screen text-red-500">{errorMessage}</div>;
   }
 
+  const questions = questionsResponse?.data;
   if (!questions) {
     return <div className="flex justify-center items-center h-screen">Something went wrong. Quiz data is not available.</div>;
   }
 
-  const isQuizFinished = currentQuestionIndex >= questions.length;
+  const isQuizFinished = currentQuestionIndex >= questions.length && !mutation.isPending;
 
   const getButtonContent = () => {
     const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -171,8 +175,9 @@ export default function QuizPage() {
       );
     }
 
+    const personas = personasResponse?.data;
     if (dominantPersona && personas) {
-      const personaDetails = personas.find(p => p.id === dominantPersona);
+      const personaDetails = personas.find((p) => p.id === dominantPersona);
       return (
         <div className="text-center">
           <PartyPopper className="h-16 w-16 text-primary mx-auto mb-6" />
@@ -263,19 +268,19 @@ export default function QuizPage() {
                 </div>
 
                 <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
-                  {questions[currentQuestionIndex].question_text}
+                  {questions[currentQuestionIndex]?.question_text}
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {questions[currentQuestionIndex].options.map((option: any) => (
+                  {questions[currentQuestionIndex]?.options.map((option) => (
                     <motion.div
                       key={option.option_text}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <Card
-                        className={`cursor-pointer transition-all duration-200 ${
-                          selectedOption === option.option_text
+                        className={`cursor-pointer transition-all duration-200 ${ 
+                          selectedOption?.option_text === option.option_text
                             ? "border-primary ring-2 ring-primary"
                             : "border-border"
                         }`}

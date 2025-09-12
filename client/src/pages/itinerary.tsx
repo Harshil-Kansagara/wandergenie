@@ -13,6 +13,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { Trip } from "@shared/schema";
 import { ApiError } from "@/lib/api-error.ts";
+import { ApiResponse } from "../lib/api-response.ts";
 import { ApiClient } from "@/lib/api-client.ts";
 
 interface LatLng {
@@ -22,11 +23,11 @@ interface LatLng {
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
-function fetchTripDetails(userId: string | undefined, tripId: string | undefined): Promise<Trip> {
+function fetchTripDetails(userId: string | undefined, tripId: string | undefined): Promise<ApiResponse<Trip>> {
   if (!userId || !tripId) {
     throw new Error("User ID and Trip ID are required");
   }
-  return apiClient.get(`/trips/${userId}/${tripId}`);
+  return apiClient.get(`/api/trips/${userId}/${tripId}`);
 }
 
 export default function Itinerary() {
@@ -35,7 +36,7 @@ export default function Itinerary() {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   
-  const { data: trip, isLoading, error } = useQuery<Trip, ApiError>({
+  const { data: apiResponse, isLoading, error } = useQuery<ApiResponse<Trip>, ApiError>({
     queryKey: ["trip", id, user?.uid],
     queryFn: () => fetchTripDetails(user?.uid || 'anonymous', id),
     enabled: !!id && !authLoading,
@@ -73,6 +74,7 @@ export default function Itinerary() {
     );
   }
 
+  const trip = apiResponse?.data;
   if (!trip) {
     // This case handles when the query is successful but returns no data.
     return (
@@ -87,11 +89,11 @@ export default function Itinerary() {
     );
   }
 
-  const itinerary = trip?.itinerary || {};
+  const itinerary = trip?.itinerary || { days: [] };
   const destinationDescription = trip.destination;
-  const destinationLatLng = itinerary.destinationLatLng;
+  const destinationLatLng = trip.destinationLatLng;
 
-  const mapWaypoints = itinerary.days?.flatMap((day: any) => {
+  const mapWaypoints = itinerary.days.flatMap((day: any) => {
     const dayLocations: { location: string; latLng?: LatLng }[] = [];
     if (day.location && day.locationLatLng) {
       dayLocations.push({ location: day.location, latLng: day.locationLatLng });
@@ -130,7 +132,7 @@ export default function Itinerary() {
         </div>
       </header>
  
-      <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8">
+      {/* <section className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2" data-testid="text-trip-title">
@@ -159,9 +161,9 @@ export default function Itinerary() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {itinerary.days && itinerary.days.length > 0 ? (
@@ -213,7 +215,7 @@ export default function Itinerary() {
 
         <Separator className="my-12" />
         <BookingFlow trip={trip} />
-      </div>
+      </div> */}
     </div>
   );
 }
