@@ -91,7 +91,8 @@ async function executePlaceSearch(requestBody: object): Promise<string | null> {
  * Fetches detailed information for a place using its Place ID.
  */
 async function getPlaceDetails(
-  placeId: string
+  placeId: string,
+  languageCode: string
 ): Promise<Partial<EnrichedActivity> | null> {
   const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
   if (!GOOGLE_MAPS_API_KEY) {
@@ -115,6 +116,7 @@ async function getPlaceDetails(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+        "X-Goog-Language-Code": languageCode,
         "X-Goog-FieldMask": fieldMask,
       },
     });
@@ -190,7 +192,7 @@ export async function enrichItineraryDay(
     // 3. If a placeId was found...
     if (placeId) {
       // ...try to get the details.
-      const details = await getPlaceDetails(placeId);
+      const details = await getPlaceDetails(placeId, planningData.language);
 
       // 4. If details were successfully fetched...
       if (details) {

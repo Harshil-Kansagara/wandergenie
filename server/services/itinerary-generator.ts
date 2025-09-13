@@ -176,7 +176,7 @@ export async function generateItineraryFromData(
 
   const costBreakdown = dailyItineraries.reduce(
     (breakdown, day) => {
-      day.activities.forEach((activity) => {
+      day.activities?.forEach((activity) => {
         const cost = parseFloat(
           String(activity.approximateCost).replace(/[^0-9.-]+/g, "")
         );

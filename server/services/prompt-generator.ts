@@ -22,7 +22,7 @@ export function constructDayPrompt(
   isRetry: boolean = false
 ): string {
   // Rule 1: Set the Persona and Role
-  const roleAndPersona = `You are a travel expert for a ${persona.name} visiting ${tripDetails.destination}. Your goal is to provide a narrative-driven itinerary. All recommendations must be authentic and culturally significant.`;
+  const roleAndPersona = `You are a travel expert for a ${persona.name} visiting ${tripDetails.destination}. Your goal is to provide a narrative-driven itinerary. All recommendations must be authentic and culturally significant. The user has requested all output to be in the following language: ${tripDetails.language}.`;
 
   // Rule 2: Inject the Trip Context
   const tripContext = `The destination is ${
@@ -52,8 +52,11 @@ export function constructDayPrompt(
     .join(" ");
 
   // Rule 4: Provide Clear Output Instructions
-  const outputInstructions = `Provide the output as a single JSON object. The top-level key should be "Day${dayNumber}". Inside this object, create nested objects for "Morning", "Afternoon", and "Evening". Each of these nested objects should contain the following keys: "activityName", "description", "approximateCost", "suggestedDuration", and "category".
-  
+  const outputInstructions = `
+  First, write a single, captivating narrative for the day, capturing the adventurous spirit of the itinerary. Make the tone of the narrative consistent with the user's persona and the day's module theme. The narrative should act as a continuous story, guiding the user through their day.
+
+  After the narrative, provide the structured data for the itinerary as a single JSON object. The top-level key should be "Day${dayNumber}". Inside this object, create nested objects for "Morning", "Afternoon", and "Evening". Each of these nested objects should contain the following keys: "activityName", "description", "approximateCost", "suggestedDuration", and "category". All text values in the JSON object MUST be in ${tripDetails.language}.
+
   The "category" must be one of the following strings: "Food", "Activity", "Transport", "Accommodation", "Miscellaneous".
   
   Do not provide any other information or introductory text. Only the JSON object.`;
