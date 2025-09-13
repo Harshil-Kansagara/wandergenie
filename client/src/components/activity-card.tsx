@@ -27,9 +27,11 @@ const getPlacePhotoUrl = (photoName: string) => {
   return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=400&key=${GOOGLE_MAPS_API_KEY}`;
 };
 
-export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: string }> = React.memo(({
+export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: string, id: string, isHovered: boolean }> = React.memo(({
   activity,
   currency,
+  id,
+  isHovered,
 }) => {
   const { formatCurrency } = useCurrency();
 
@@ -43,7 +45,7 @@ export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: stri
   }, [activity.location, activity.id, activity.activityName, activity.formattedAddress]);
 
   return (
-    <Card className="mb-6 overflow-hidden shadow-md transition-shadow hover:shadow-lg">
+    <Card id={id} className={`mb-6 overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg scroll-mt-24 ${isHovered ? 'border-primary shadow-primary/20' : ''}`}>
       <div className="grid md:grid-cols-3">
         {activity.photos && activity.photos.length > 0 ? (
           <Carousel className="md:col-span-1 group">
@@ -85,27 +87,9 @@ export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: stri
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
               {activity.formattedAddress && <div className="flex items-center"><MapPin className="mr-2 h-3.5 w-3.5 text-muted-foreground" /> {activity.formattedAddress}</div>}
               {activity.approximateCost && (
-                <div className="flex items-center">
-                  <DollarSign className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  {formatCurrency(parseFloat(String(activity.approximateCost).replace(/[^0-9.-]+/g, "")), currency)}
-                </div>
+                <div className="flex items-center">{formatCurrency(parseFloat(String(activity.approximateCost).replace(/[^0-9.-]+/g, "")), currency)}</div>
               )}
               {activity.rating && <div className="flex items-center"><Star className="mr-2 h-3.5 w-3.5 text-amber-500" /> {activity.rating} ({activity.userRatingsTotal ?? 0} reviews)</div>}
-            </div>
-            <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                    <a href={directionsUrl} target="_blank" rel="noopener noreferrer"><Navigation className="mr-2 h-3.5 w-3.5" /> {activity.travelToNext ? 'Next Stop' : 'Directions'}</a>
-                </Button>
-                {activity.websiteUri && (
-                    <Button asChild variant="outline" size="sm">
-                        <a href={activity.websiteUri} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-2 h-3.5 w-3.5" /> Visit Website</a>
-                    </Button>
-                )}
-                 {activity.id && (
-                    <Button asChild variant="outline" size="sm">
-                        <a href={`https://www.google.com/maps/search/?api=1&query_place_id=${activity.id}`} target="_blank" rel="noopener noreferrer"><BookOpen className="mr-2 h-3.5 w-3.5" /> Read Reviews</a>
-                    </Button>
-                )}
             </div>
           </CardContent>
         </div>

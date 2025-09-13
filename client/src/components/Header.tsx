@@ -10,9 +10,10 @@ interface HeaderProps {
   user: User | null;
   onSignOut: () => void;
   onSignIn: () => void;
+  actions?: React.ReactNode;
 }
 
-export default function Header({ user, onSignOut, onSignIn }: Readonly<HeaderProps>) {
+export default function Header({ user, onSignOut, onSignIn, actions }: Readonly<HeaderProps>) {
   const { t } = useTranslation();
 
   return (
@@ -38,6 +39,7 @@ export default function Header({ user, onSignOut, onSignIn }: Readonly<HeaderPro
           <div className="flex items-center space-x-4">
             <LanguageSelector />
             <CurrencySelector />
+            {actions}
             {user ? (
               <div className="flex items-center space-x-2">
                 <span>{user.email}</span>
