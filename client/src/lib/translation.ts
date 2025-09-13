@@ -124,7 +124,16 @@ export class TranslationService {
     isFallback: boolean = false
   ): Promise<TranslationStrings> {
     try {
-      const translations = await import(`@/locales/${languageCode}.json`);
+      // Vite's dynamic import can't handle fully dynamic paths with aliases.
+      // We use `import.meta.glob` to make the paths discoverable at build time.
+      // The path must be relative to the project root.
+      const localeModules = import.meta.glob(
+        "/src/assets/i18n/*.json"
+      ) as Record<string, () => Promise<any>>;
+      const path = `/src/assets/i18n/${languageCode}.json`;
+      const importFn = localeModules[path];
+      const translationsModule = await importFn();
+      const translations = translationsModule.default || translationsModule;
       if (isFallback) {
         this.fallbackTranslations = translations.default || translations;
       }

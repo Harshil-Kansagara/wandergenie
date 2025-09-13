@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
-import { db } from "../config/firebase";
 import { ApiResponse } from "../utils/api-response";
 import { AppError } from "../middlewares/errorHandler";
-import { QuizOption, QuizQuestion } from "@shared/schema";
+import { quizAnswersSchema } from "@shared/schema";
+import {
+  calculateDominantPersona,
+  getTranslatedQuizQuestions,
+} from "../services/quiz-service";
 
 /**
  * Retrieves the list of questions for the travel persona quiz.
@@ -11,23 +14,15 @@ import { QuizOption, QuizQuestion } from "@shared/schema";
  * @param res The Express response object.
  */
 export const getQuizQuestions = async (_req: Request, res: Response) => {
-  const questionsSnapshot = await db.collection("quiz_questions").get();
-  if (questionsSnapshot.empty) {
-    throw new AppError("No quiz questions found", 404);
+  const langHeader = _req.headers["accept-language"] || "en";
+  const targetLang = langHeader.split(",")[0].split("-")[0];
+  try {
+    const clientSafeQuestions = await getTranslatedQuizQuestions(targetLang);
+    res.status(200).json(ApiResponse.success(clientSafeQuestions));
+  } catch (error) {
+    console.error("Error fetching quiz questions:", error);
+    throw new AppError("Failed to fetch quiz questions", 400);
   }
-
-  // Map over the questions and remove the persona_scores from each option
-  const questions = questionsSnapshot.docs.map((doc) => {
-    const data = doc.data() as QuizQuestion;
-    const options = data.options.map((opt: QuizOption) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { persona_scores, ...rest } = opt;
-      return rest;
-    });
-    return { ...data, id: doc.id, options };
-  });
-
-  res.status(200).json(ApiResponse.success(questions));
 };
 
 /**
@@ -37,48 +32,17 @@ export const getQuizQuestions = async (_req: Request, res: Response) => {
  * @param res The Express response object.
  */
 export const calculatePersona = async (req: Request, res: Response) => {
-  const { answers } = req.body;
+  const { answers } = quizAnswersSchema.parse(req.body);
 
-  if (
-    !answers ||
-    typeof answers !== "object" ||
-    Object.keys(answers).length === 0
-  ) {
-    throw new AppError("Invalid or empty answers format.", 400);
+  // Get the desired language from the 'Accept-Language' header.
+  const langHeader = req.headers["accept-language"] || "en";
+  const lang = langHeader.split(",")[0].split("-")[0];
+
+  try {
+    const dominantPersona = await calculateDominantPersona(answers, lang);
+    res.status(200).json(ApiResponse.success({ persona: dominantPersona }));
+  } catch (error) {
+    console.error("Error calculating persona:", error);
+    throw new AppError("Failed to calculate persona", 400);
   }
-
-  const scores: Record<string, number> = {};
-
-  const questionsSnapshot = await db.collection("quiz_questions").get();
-  const questionsMap = new Map<string, QuizQuestion>(
-    questionsSnapshot.docs.map((doc) => [
-      doc.id,
-      { id: doc.id, ...doc.data() } as QuizQuestion,
-    ])
-  );
-
-  for (const questionId in answers) {
-    const question = questionsMap.get(questionId);
-    const selectedOptionText = answers[questionId].option_text;
-
-    if (question && selectedOptionText) {
-      const selectedOption = question.options.find(
-        (opt) => opt.option_text === selectedOptionText
-      );
-
-      if (selectedOption?.persona_scores) {
-        for (const persona in selectedOption.persona_scores) {
-          scores[persona] =
-            (scores[persona] || 0) + selectedOption.persona_scores[persona];
-        }
-      }
-    }
-  }
-
-  const scoreKeys = Object.keys(scores);
-  const dominantPersona = scoreKeys.length
-    ? scoreKeys.reduce((a, b) => (scores[a] > scores[b] ? a : b), scoreKeys[0])
-    : "All-Rounder";
-
-  res.status(200).json(ApiResponse.success({ persona: dominantPersona }));
 };

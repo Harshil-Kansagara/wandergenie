@@ -17,6 +17,15 @@ export const tripPlanningSchema = z.object({
 
 export type TripPlanningRequest = z.infer<typeof tripPlanningSchema>;
 
+export const quizAnswersSchema = z.object({
+  answers: z
+    .record(z.string(), z.object({ option_text: z.string() }))
+    .refine((val) => Object.keys(val).length > 0, {
+      message: "Answers object cannot be empty.",
+    }),
+});
+export type QuizAnswersRequest = z.infer<typeof quizAnswersSchema>;
+
 // Itinerary-related types
 export interface Activity {
   timeOfDay: string;

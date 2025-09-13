@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { db } from "../config/firebase";
-import { Persona } from "@shared/schema";
 import { ApiResponse } from "../utils/api-response";
 import { AppError } from "../middlewares/errorHandler";
+import { getTranslatedPersonas } from "../services/persona-service";
 
 /**
  * Retrieves a list of all available travel personas.
@@ -10,10 +9,14 @@ import { AppError } from "../middlewares/errorHandler";
  * @param res The Express response object.
  */
 export const getPersonas = async (_req: Request, res: Response) => {
-  const personasSnapshot = await db.collection("personas").get();
-  if (personasSnapshot.empty) {
-    throw new AppError("No personas found", 404);
+  const langHeader = _req.headers["accept-language"] || "en";
+  const targetLang = langHeader.split(",")[0].split("-")[0];
+
+  try {
+    const personas = await getTranslatedPersonas(targetLang);
+    res.status(200).json(ApiResponse.success(personas));
+  } catch (error) {
+    console.error("Error fetching personas:", error);
+    throw new AppError("Failed to fetch personas", 400);
   }
-  const personas = personasSnapshot.docs.map((doc) => doc.data() as Persona);
-  res.status(200).json(ApiResponse.success(personas));
 };
