@@ -7,11 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DaySection } from "./day-section";
 import { CostBreakdownPanel } from "./cost-breakdown-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CostBreakdownFAB } from "./cost-breakdown-fab";
+import { CostBreakdownButton } from "./cost-breakdown-button";
 
 export const ItineraryDisplay: React.FC<{
   itinerary: Trip & { persona?: Persona };
-}> = ({ itinerary }) => {
+}> = ({ itinerary, }) => {
   const [activeDay, setActiveDay] = useState(1);
   const [isCostPanelOpen, setIsCostPanelOpen] = useState(false);
   const [hoveredActivityIndex, setHoveredActivityIndex] = useState<number | null>(null);
@@ -43,23 +43,27 @@ export const ItineraryDisplay: React.FC<{
         location: a.activityName,
         latLng: a.location,
         rating: a.rating,
+        cost: a.approximateCost,
       })) || [];
   }, [activeDay, itinerary.itinerary?.days]);
 
   return (
     <>
       <div className="flex flex-col h-screen bg-background overflow-hidden">
-        <header className="p-4 border-b bg-card text-center">
-          <h1 className="text-2xl font-bold text-center">{itinerary.title}</h1>
-          <div className="flex items-center justify-center space-x-4 text-muted-foreground mt-2">
-            <span className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              {format(new Date(itinerary.startDate), "MMM d")} - {format(new Date(itinerary.endDate), "d, yyyy")}
-            </span>
-            <span className="flex items-center"><Users className="h-4 w-4 mr-2" />{itinerary.groupSize ?? 1} traveler(s)</span>
+        <header className="p-4 border-b bg-card flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">{itinerary.title}</h1>
+            <div className="flex items-center space-x-4 text-muted-foreground mt-1">
+              <span className="flex items-center text-sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                {format(new Date(itinerary.startDate), "MMM d")} - {format(new Date(itinerary.endDate), "d, yyyy")}
+              </span>
+              <span className="flex items-center text-sm"><Users className="h-4 w-4 mr-2" />{itinerary.groupSize ?? 1} traveler(s)</span>
+            </div>
           </div>
+          <CostBreakdownButton onClick={() => setIsCostPanelOpen(true)} currency={itinerary.currency} />
         </header>
-        <div className="grid grid-cols-1 lg:grid-cols-2 flex-grow overflow-hidden bg-muted/20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 overflow-hidden bg-muted/20">
         {/* Left Column: Interactive Map */}
           <div className="hidden lg:block relative h-full">
           <AnimatePresence mode="wait">
@@ -91,18 +95,18 @@ export const ItineraryDisplay: React.FC<{
         </div>
   
         {/* Right Column: Itinerary */}
-          <div className="bg-card flex flex-col h-full overflow-hidden relative" style={{ height: 'calc(100vh - 73px)' }}>
+          <div className="bg-card flex flex-col overflow-hidden relative">
             <Tabs defaultValue="1" onValueChange={handleDayChange} className="flex-grow flex flex-col">
             <div className="p-4 border-b">
               <TabsList>
                 {itinerary.itinerary?.days.map((day: ItineraryDay) => (
-                  <TabsTrigger key={day.day} value={String(day.day)}>Day {day.day}</TabsTrigger>
+                  <TabsTrigger key={day.day} value={String(day.day)} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Day {day.day}</TabsTrigger>
                 ))}
               </TabsList>
             </div>
-              <div className="flex-grow overflow-hidden">
+              <div className="flex-grow relative">
               {itinerary.itinerary?.days.map((day: ItineraryDay) => (
-                <TabsContent key={day.day} value={String(day.day)} className="p-4 md:p-6 mt-0 h-full">
+                <TabsContent key={day.day} value={String(day.day)} className="absolute inset-0 p-4 md:p-6 mt-0 overflow-y-auto">
                   <DaySection
                     day={day}
                     persona={itinerary.persona}
@@ -113,7 +117,6 @@ export const ItineraryDisplay: React.FC<{
               ))}
             </div>
           </Tabs>
-            <CostBreakdownFAB onClick={() => setIsCostPanelOpen(true)} currency={itinerary.currency} />
         </div>
         </div>
       </div>

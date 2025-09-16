@@ -62,8 +62,8 @@ const createTooltipElement = (waypoint: Waypoint) => {
 };
 
 class Tooltip extends google.maps.OverlayView {
-  private position: google.maps.LatLng;
-  private content: HTMLElement;
+  private readonly position: google.maps.LatLng;
+  private readonly content: HTMLElement;
 
   constructor(position: google.maps.LatLng, content: HTMLElement) {
     super();
@@ -93,7 +93,6 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
-  const [zoom, setZoom] = useState(10);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polylineRef = useRef<google.maps.Polyline | null>(null);
   const activeTooltip = useRef<Tooltip | null>(null);
@@ -107,7 +106,7 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
 
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 0, lng: 0 },
-        zoom: zoom,
+        zoom: 10,
         mapId: import.meta.env.VITE_GOOGLE_MAP_ID || undefined,
         mapTypeId: 'roadmap',
         fullscreenControl: false,
@@ -147,18 +146,12 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
 
   useEffect(() => {
     if (mapInstance.current) {
-      mapInstance.current.setZoom(zoom);
-    }
-  }, [zoom]);
-
-  useEffect(() => {
-    if (mapInstance.current) {
       updateMarkers();
     }
   }, [destination, waypoints, onPinClick, onPinMouseEnter, onPinMouseLeave]);
 
   const updateMarkers = () => {
-    if (!mapInstance.current || !window.google.maps.marker) return;
+    if (!mapInstance.current || !window.google?.maps?.marker) return;
 
     const { AdvancedMarkerElement } = window.google.maps.marker;
 
@@ -175,7 +168,7 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
     const bounds = new window.google.maps.LatLngBounds();
 
     allPoints.forEach((point, index) => {
-      if (point.latLng) {
+      if (point.latLng && point.latLng.latitude && point.latLng.longitude) {
         const lat = parseFloat(point.latLng.latitude as any);
         const lng = parseFloat(point.latLng.longitude as any);
 
@@ -229,6 +222,10 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
       }
     });
 
+    if (markersRef.current.length === 0 && waypoints.length > 0) {
+      console.warn("Waypoints were provided, but no markers could be created. Check if lat/lng are valid numbers.");
+    }
+
     if (markersRef.current.length > 0) {
       // Use panToBounds for a smoother animation
       mapInstance.current.panToBounds(bounds);
@@ -239,8 +236,16 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
     }
   };
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 1, 20));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 1, 1));
+  const handleZoomIn = () => {
+    if (!mapInstance.current) return;
+    const currentZoom = mapInstance.current.getZoom() || 10;
+    mapInstance.current.setZoom(Math.min(currentZoom + 1, 20));
+  };
+  const handleZoomOut = () => {
+    if (!mapInstance.current) return;
+    const currentZoom = mapInstance.current.getZoom() || 10;
+    mapInstance.current.setZoom(Math.max(currentZoom - 1, 1));
+  };
 
   return (
     <div className={`relative w-full h-full ${className}`}>
