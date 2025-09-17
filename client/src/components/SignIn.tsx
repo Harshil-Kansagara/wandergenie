@@ -8,6 +8,8 @@ import { Label } from "./ui/label";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 
 interface SignInProps {
@@ -19,20 +21,49 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { t, language } = useTranslation();
+  const { getAndClearTemporaryTrip } = useAuth();
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   
+  const saveTripMutation = useMutation({
+    mutationFn: (trip: any) => apiRequest('POST', '/api/trips', trip),
+    onSuccess: async (data) => {
+      const savedTrip = await data.json();
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast({
+        title: "Trip Saved!",
+        description: `Your trip to ${savedTrip.destination} has been saved.`,
+      });
+      setLocation("/trips");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not save your trip after login. Please save it again.", variant: "destructive" });
+      setLocation("/dashboard");
+    }
+  });
+
+  const handleAuthSuccess = () => {
+    const tempTrip = getAndClearTemporaryTrip();
+    const currentUser = auth.currentUser;
+    console.log(currentUser);
+    if (tempTrip && currentUser) {
+      // Overwrite the anonymous userId with the real one before saving.
+      const tripToSave = { ...tempTrip, userId: currentUser.uid };
+      saveTripMutation.mutate(tripToSave);
+    } else {
+      setLocation("/dashboard");
+    }
+    onSuccess();
+  };
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
-        const user = userCredential.user;
         toast({ title: "Signed in successfully" });
-        setLocation("/dashboard");
-        onSuccess();
+        handleAuthSuccess();
       })
       .catch((error) => {
         const errorMessage = error.message;
@@ -46,13 +77,11 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed up
-        const user = userCredential.user;
         toast({ title: "Signed up successfully" });
-        console.log("User signed up successfully", user);
         setEmail("");
         setPassword("");
         setIsSignUp(false);
-        onSuccess();
+        handleAuthSuccess();
       })
       .catch((error) => {
         const errorMessage = error.message;

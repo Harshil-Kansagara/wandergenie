@@ -147,6 +147,7 @@ export const ItineraryDisplay: React.FC<{
               </div>
             )}
             <CostBreakdown
+              itinerary={itinerary}
               costBreakdown={itinerary.costBreakdown}
               totalCost={itinerary.costBreakdown?.total}
               currency={itinerary.currency}
