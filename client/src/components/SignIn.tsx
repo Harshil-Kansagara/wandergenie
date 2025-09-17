@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { useLocation } from "wouter";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -20,6 +21,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { t, language } = useTranslation();
+  const [, setLocation] = useLocation();
   
 
   const handleSignIn = (e: React.FormEvent) => {
@@ -29,7 +31,7 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
         // Signed in
         const user = userCredential.user;
         toast({ title: "Signed in successfully" });
-        console.log("User signed in successfully", user);
+        setLocation("/dashboard");
         onSuccess();
       })
       .catch((error) => {
