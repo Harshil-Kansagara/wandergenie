@@ -112,14 +112,16 @@ async function getPlaceDetails(
   const fieldMask = fields.join(",");
 
   try {
-    const response = await axios.get(`${PLACES_API_BASE_URL}/${placeId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
-        "X-Goog-Language-Code": languageCode,
-        "X-Goog-FieldMask": fieldMask,
-      },
-    });
+    const response = await axios.get(
+      `${PLACES_API_BASE_URL}/${placeId}?languageCode=${languageCode}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+          "X-Goog-FieldMask": fieldMask,
+        },
+      }
+    );
     const { userRatingCount, ...rest } = response.data;
     return { ...rest, userRatingsTotal: userRatingCount };
   } catch (error) {

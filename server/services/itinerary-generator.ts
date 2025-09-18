@@ -58,7 +58,7 @@ async function generateSingleDay(
       model: "gemini-1.5-flash",
       config: {
         systemInstruction:
-          "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice.",
+          "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice. Your primary goal is to create a detailed, accurate, and practical travel itinerary that STRICTLY adheres to the provided budget. Always prioritize cost-effective options.",
         responseMimeType: "application/json",
       },
       contents: prompt,
