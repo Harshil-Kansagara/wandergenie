@@ -9,7 +9,7 @@ interface ItineraryCardProps {
   dayNumber: number;
 }
 
-export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
+export default function ItineraryCard({ day, dayNumber }: Readonly<ItineraryCardProps>) {
   const { t } = useTranslation();
 
   const getTimeIcon = (time: string) => {
@@ -43,8 +43,8 @@ export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
           </div>
         </div>
         
-        {day.weather && day.weather.includes("rain") && (
-          <div className="bg-accent/10 border border-accent rounded-lg p-3">
+        {day.weather?.includes("rain") && (
+          <div className="p-3 border rounded-lg bg-accent/10 border-accent">
             <div className="flex items-center space-x-2">
               <AlertTriangle className="h-4 w-4 text-accent" />
               <span className="text-sm text-accent-foreground">
@@ -57,8 +57,8 @@ export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
 
       <CardContent className="space-y-4">
         {/* Activities */}
-        {day.activities && day.activities.map((activity: any, index: number) => (
-          <div key={index} className="flex items-start space-x-4">
+        {day.activities?.map((activity: any) => (
+          <div key={`${dayNumber}-${activity.title}`} className="flex items-start space-x-4">
             <div className="flex flex-col items-center">
               <div className="text-2xl mb-1">
                 {getTimeIcon(activity.time)}
@@ -70,7 +70,7 @@ export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
             
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-foreground" data-testid={`text-activity-${dayNumber}-${index}`}>
+                <h4 className="font-medium text-foreground" data-testid={`text-activity-${dayNumber}-${activity.title}`}>
                   {activity.title}
                 </h4>
                 <div className="flex items-center space-x-2">
@@ -88,7 +88,7 @@ export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
                   </div>
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-3 w-3 text-secondary" />
-                    <span className="text-sm font-medium text-secondary" data-testid={`text-cost-${dayNumber}-${index}`}>
+                    <span className="text-sm font-medium text-secondary" data-testid={`text-cost-${dayNumber}-${activity.title}`}>
                       {activity.cost}
                     </span>
                   </div>
@@ -109,7 +109,7 @@ export default function ItineraryCard({ day, dayNumber }: ItineraryCardProps) {
         ))}
 
         {/* Accommodation */}
-        {day.accommodation && (
+        {day.accommodation?.name && (
           <div className="border-t border-border pt-4">
             <h5 className="font-medium text-foreground mb-2">🏨 {t("accommodation")}</h5>
             <div className="bg-muted/50 rounded-lg p-3">

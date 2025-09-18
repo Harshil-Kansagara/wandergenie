@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, DollarSign, Bed, Utensils, TramFront, Ticket } from 'lucide-react';
+import { X, DollarSign, Bed, Utensils, TramFront, Ticket, Wand2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Trip } from '@shared/schema';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { useCurrency } from '@/hooks/use-currency';
+import { Input } from './ui/input';
+import { Slider } from './ui/slider';
 
 interface CostBreakdownPanelProps {
   isOpen: boolean;
@@ -25,13 +27,29 @@ const CATEGORY_ICONS = {
 
 export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, onClose, itinerary }) => {
   const { formatCurrency } = useCurrency();
-  const { costBreakdown, budget, currency, itinerary: tripItinerary } = itinerary;
+  const { costBreakdown, currency, itinerary: tripItinerary } = itinerary;
+  const [adjustableBudget, setAdjustableBudget] = useState(itinerary.budget);
+
+  useEffect(() => {
+    // Reset the adjustable budget if the panel is re-opened with a different itinerary
+    if (isOpen) {
+      setAdjustableBudget(itinerary.budget);
+    }
+  }, [isOpen, itinerary.budget]);
 
   if (!costBreakdown) return null;
 
   const totalSpent = parseFloat(costBreakdown.total ?? '0');
-  const budgetAmount = budget ?? 0;
+  const budgetAmount = adjustableBudget ?? 0;
   const budgetProgress = budgetAmount > 0 ? (totalSpent / budgetAmount) * 100 : 0;
+  const budgetDifference = budgetAmount - totalSpent;
+
+  const handleReplanClick = () => {
+    // In a real app, you would trigger a mutation here, e.g.:
+    // replanMutation.mutate({ ...itinerary, budget: adjustableBudget });
+    console.log(`Re-planning trip with new budget: ${adjustableBudget}`);
+    onClose(); // Close panel after initiating re-plan
+  };
 
   const chartData = Object.entries(costBreakdown)
     .filter(([key, value]) => typeof value === 'number' && value > 0 && !['total', 'isOverBudget', 'overageAmount'].includes(key))
@@ -96,14 +114,48 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
                   </div>
                 </div>
 
+                <Separator />
+
+                {/* Interactive Budget Adjustment */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Adjust Your Budget</h3>
+                  <div className="space-y-4 rounded-lg border p-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Your New Budget</h4>
+                      <Input
+                        type="number"
+                        value={adjustableBudget}
+                        onChange={(e) => setAdjustableBudget(Number(e.target.value))}
+                        className="w-32"
+                      />
+                    </div>
+                    <Slider
+                      value={[adjustableBudget]}
+                      onValueChange={(value) => setAdjustableBudget(value[0])}
+                      max={itinerary.budget * 2} // Allow doubling the original budget
+                      step={100}
+                    />
+                    <div className="text-center text-sm">
+                      {budgetDifference >= 0 ? (
+                        <p className="text-green-600">{formatCurrency(budgetDifference, currency)} under new budget</p>
+                      ) : (
+                        <p className="text-red-600">{formatCurrency(Math.abs(budgetDifference), currency)} over new budget</p>
+                      )}
+                    </div>
+                    <Button onClick={handleReplanClick} className="w-full" variant="secondary">
+                      <Wand2 className="mr-2 h-4 w-4" /> Re-plan with New Budget
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Visual Breakdown */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Category Breakdown</h3>
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {chartData.map((entry) => (
+                          <Cell key={`cell-${entry.name}`} fill={COLORS[chartData.indexOf(entry) % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
