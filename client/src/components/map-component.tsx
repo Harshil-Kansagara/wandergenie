@@ -115,20 +115,11 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
         styles: mapStyle,
       });
 
-      const glowingLineSymbol = {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 7,
-        strokeColor: '#4F46E5',
-        strokeOpacity: 0.4,
-        strokeWeight: 2,
-      };
-
       polylineRef.current = new window.google.maps.Polyline({
         strokeColor: '#4F46E5',
         strokeOpacity: 0.8,
         strokeWeight: 4,
         map: mapInstance.current,
-        icons: [{ icon: glowingLineSymbol, offset: '0', repeat: '20px' }],
       });
 
       updateMarkers();
@@ -179,6 +170,7 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
           // Create a custom pin element for waypoints
           const pin = new google.maps.marker.PinElement({
             scale: 1.2,
+            glyphColor: 'white', 
             background: '#4F46E5',
             borderColor: '#ffffff',
             glyph: `${index + 1}`,

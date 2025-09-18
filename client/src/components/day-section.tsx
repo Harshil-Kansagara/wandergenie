@@ -19,8 +19,6 @@ export const DaySection: React.FC<DaySectionProps> = ({
 
   return (
     <div ref={dayRef}>
-      <h3 className="text-lg font-semibold text-primary mb-2">Your Daily Story</h3>
-      <p className="text-muted-foreground mb-4 prose prose-sm max-w-none flex-shrink-0">"{day.narrative ?? ""}"</p>
       <div className="space-y-6">
         {day.activities?.map((activity: EnrichedActivity, index: number) => (
           <ActivityCard 
