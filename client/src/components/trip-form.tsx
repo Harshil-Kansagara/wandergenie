@@ -46,6 +46,7 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
   const { currency } = useCurrency();
   const { t, language } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { user } = useAuth();
 
   const getTodayString = () => {
     return new Date().toISOString().split("T")[0];
@@ -122,7 +123,7 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
   });
 
   const onSubmit = (data: TripPlanningRequest) => {
-    // Immediately navigate to the loading page
+    data.userId = user ? user.uid : 'anonymous';
     setLocation("/generating-itinerary");
     generateItineraryMutation.mutate(data);
   };

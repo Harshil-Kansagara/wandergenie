@@ -12,3 +12,14 @@ export const createTripForUser = async (tripData: Trip): Promise<string> => {
   const newTrip = await storage.createTrip(tripData);
   return newTrip.id;
 };
+
+/**
+ * Method is used to fetch the trip details
+ * @param tripId The ID of the trip
+ * @returns The trip data
+ */
+export const getTripById = async (
+  tripId: string
+): Promise<Trip | undefined> => {
+  return storage.getTrip(tripId);
+};

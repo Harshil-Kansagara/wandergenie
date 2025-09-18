@@ -1,4 +1,70 @@
-import { EnrichedActivity, Trip } from "@shared/schema";
+import {
+  EnrichedActivity,
+  Persona,
+  Trip,
+  TripPlanningRequest,
+} from "@shared/schema";
+import { db } from "../config/firebase";
+import { AppError } from "../middlewares/errorHandler";
+import { geocodeDestination } from "./geocoding-service";
+import { generateItineraryFromData } from "./itinerary-generator";
+import { createTripForUser } from "./trip-service";
+
+/**
+ * Orchestrates the entire itinerary generation and saving process.
+ * @param planningData - The user's trip planning request.
+ * @returns The newly created and saved trip object.
+ */
+export const generateAndSaveItinerary = async (
+  planningData: TripPlanningRequest
+) => {
+  // 1. Fetch persona from Firestore
+  const personaDoc = await db
+    .collection("personas")
+    .doc(planningData.theme)
+    .get();
+  if (!personaDoc.exists) {
+    throw new AppError(`Persona '${planningData.theme}' not found.`, 404);
+  }
+  const persona = personaDoc.data() as Persona;
+
+  // 2. Geocode destination if lat/lng is missing
+  if (!planningData.destinationLatLng) {
+    const latLng = await geocodeDestination(planningData.destination);
+    if (!latLng) {
+      throw new AppError(
+        `Could not find coordinates for destination: "${planningData.destination}"`,
+        400
+      );
+    }
+    planningData = { ...planningData, destinationLatLng: latLng };
+  }
+
+  // 3. Generate itinerary from AI service
+  const generatedTripData = {
+    ...(await generateItineraryFromData(planningData, persona)),
+    destinationLatLng: planningData.destinationLatLng,
+  };
+
+  // 4. Save the complete trip to the database with a 'draft' status
+  const newTripId = await createTripForUser({
+    ...generatedTripData,
+    userId: planningData.userId,
+    status: "draft",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  const fullTrip: Trip = {
+    ...generatedTripData,
+    userId: planningData.userId,
+    id: newTripId,
+    status: "draft",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  return fullTrip;
+};
 
 /**
  * Placeholder function for refining a single activity.

@@ -13,6 +13,7 @@ export const tripPlanningSchema = z.object({
   accommodation: z.string().optional(),
   transport: z.string().optional(),
   language: z.string().default("en"),
+  userId: z.string().optional(),
 });
 
 export type TripPlanningRequest = z.infer<typeof tripPlanningSchema>;
