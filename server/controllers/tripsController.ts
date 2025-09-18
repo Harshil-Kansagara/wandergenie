@@ -2,17 +2,19 @@ import { Request, Response } from "express";
 import { storage } from "../models/storage";
 import { ApiResponse } from "../utils/api-response";
 import { AppError } from "../middlewares/errorHandler";
+import { createTripForUser } from "../services/trip-service";
+import { Trip } from "@shared/schema";
 
 /**
- * Saves a new trip to the database. (Currently not implemented).
+ * Saves a new trip to the database.
  * @param req The Express request object, containing trip data.
  * @param res The Express response object.
  */
 export const saveTrip = async (req: Request, res: Response) => {
-  // const tripData = insertTripSchema.parse(req.body);
-  // const trip = await storage.createTrip(tripData);
-  // res.status(201).json(ApiResponse.success(trip, 201));
-  res.status(501).json(ApiResponse.error("Not Implemented", 501));
+  const tripData: Trip = req.body;
+
+  const newTrip = await createTripForUser(tripData);
+  res.status(201).json(ApiResponse.success(newTrip, 201));
 };
 
 /**

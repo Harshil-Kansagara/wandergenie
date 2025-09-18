@@ -5,18 +5,40 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard, Heart, Share2, DollarSign } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useTranslation } from "@/hooks/use-translation";
-import { CostBreakdown as CostBreakdownType } from "@shared/schema";
+import { CostBreakdown as CostBreakdownType, Trip } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface CostBreakdownProps {
+  itinerary: Trip;
   costBreakdown?: CostBreakdownType | null;
   totalCost?: number | string;
   currency?: string;
 }
 
-export default function CostBreakdown({ costBreakdown, totalCost, currency = "USD" }: Readonly<CostBreakdownProps>) {
+export default function CostBreakdown({ itinerary, costBreakdown, totalCost, currency = "USD" }: Readonly<CostBreakdownProps>) {
   const { convertCurrency, formatCurrency } = useCurrency();
   const { t } = useTranslation();
+  const { user, setIsSignInOpen, saveTripTemporarily } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
+  const saveTripMutation = useMutation({
+    mutationFn: (trip: Trip) => apiRequest('POST', '/api/trips', trip),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast({
+        title: "Trip Saved!",
+        description: "Your adventure is waiting for you in 'My Trips'.",
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not save your trip. Please try again.", variant: "destructive" });
+    }
+  });
+
   if (!costBreakdown) {
     return null; // Don't render if there's no cost data
   }
@@ -100,6 +122,14 @@ export default function CostBreakdown({ costBreakdown, totalCost, currency = "US
               variant="secondary" 
               className="py-2 px-3 text-sm font-medium hover:opacity-90 smooth-transition"
               data-testid="button-save-trip"
+              onClick={() => {
+                if (user) {
+                  saveTripMutation.mutate(itinerary);
+                } else {
+                  saveTripTemporarily(itinerary);
+                  setIsSignInOpen(true);
+                }
+              }}
             >
               <Heart className="mr-1 h-3 w-3" />
               {t('save')}

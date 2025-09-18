@@ -8,8 +8,13 @@ import apiRoutes from "./routes/routes";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+app.use((req, res, next) => {
+  console.log("Content-Length:", req.headers["content-length"]);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
