@@ -1,13 +1,18 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback } from 'react';
 import { Trip, Persona, ItineraryDay} from "@shared/schema";
 import { format } from "date-fns";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, Heart, Share2 } from "lucide-react";
 import MapComponent from "./map-component";
 import { motion, AnimatePresence } from "framer-motion";
 import { DaySection } from "./day-section";
 import { CostBreakdownPanel } from "./cost-breakdown-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CostBreakdownButton } from "./cost-breakdown-button";
+import { Button } from './ui/button';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export const ItineraryDisplay: React.FC<{
   itinerary: Trip & { persona?: Persona };
@@ -15,6 +20,46 @@ export const ItineraryDisplay: React.FC<{
   const [activeDay, setActiveDay] = useState(1);
   const [isCostPanelOpen, setIsCostPanelOpen] = useState(false);
   const [hoveredActivityIndex, setHoveredActivityIndex] = useState<number | null>(null);
+  const { user, setIsSignInOpen, saveTripTemporarily } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const saveTripMutation = useMutation({
+    mutationFn: (trip: Trip) => apiRequest('POST', '/api/trips', trip),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast({
+        title: "Trip Saved!",
+        description: "Your adventure is waiting for you in 'My Trips'.",
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not save your trip. Please try again.", variant: "destructive" });
+    }
+  });
+
+  const handleShareClick = async () => {
+    const formattedStartDate = format(new Date(itinerary.startDate), "MMM d");
+    const formattedEndDate = format(new Date(itinerary.endDate), "d, yyyy");
+
+    const shareData = {
+      title: `My WanderGenie Trip to ${itinerary.destination}!`,
+      text: `Check out my AI-planned trip to ${itinerary.destination} from ${formattedStartDate} to ${formattedEndDate}. You can plan one too!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Link Copied!", description: "The trip URL has been copied to your clipboard." });
+    }
+  };
 
   const handleDayChange = (dayString: string) => {
     setActiveDay(parseInt(dayString, 10));
@@ -61,7 +106,27 @@ export const ItineraryDisplay: React.FC<{
               <span className="flex items-center text-sm"><Users className="h-4 w-4 mr-2" />{itinerary.groupSize ?? 1} traveler(s)</span>
             </div>
           </div>
-          <CostBreakdownButton onClick={() => setIsCostPanelOpen(true)} currency={itinerary.currency} />
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (user) {
+                  saveTripMutation.mutate(itinerary);
+                } else {
+                  saveTripTemporarily(itinerary);
+                  setIsSignInOpen(true);
+                }
+              }}
+            >
+              <Heart className="mr-2 h-4 w-4" />
+              Save
+            </Button>
+            <Button variant="outline" onClick={handleShareClick}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+            <CostBreakdownButton onClick={() => setIsCostPanelOpen(true)} currency={itinerary.currency} />
+          </div>
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 overflow-hidden bg-muted/20">
         {/* Left Column: Interactive Map */}

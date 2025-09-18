@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getAndClearTemporaryTrip = (): Trip | null => {
     const tripJson = localStorage.getItem(TEMP_TRIP_STORAGE_KEY);
     if (tripJson) {
-      // localStorage.removeItem(TEMP_TRIP_STORAGE_KEY);
+      localStorage.removeItem(TEMP_TRIP_STORAGE_KEY);
       try {
         return JSON.parse(tripJson);
       } catch (e) {
