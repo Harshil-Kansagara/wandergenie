@@ -109,7 +109,7 @@ export default function Dashboard() {
           <div className="lg:col-span-2 space-y-8">
             {/* 2. Main Call-to-Action */}
             <Card className="bg-primary/10 border-primary/20 hover:shadow-xl transition-shadow duration-300">
-              <Link href="/planner" className="block">
+              <Link href="/quiz" className="block">
                 <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="text-center md:text-left">
                     <h2 className="text-2xl font-bold text-primary">{t("create_new_trip")}</h2>
@@ -206,7 +206,7 @@ export default function Dashboard() {
           {/* Right Column */}
           <div className="space-y-8">
             {/* 3. Persona & Profiling Section */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-primary" />
@@ -222,7 +222,7 @@ export default function Dashboard() {
                   </Link>
                 </Button>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* 5. The "Learning" Card */}
             {/* <Card className="bg-secondary/10 border-secondary/20">

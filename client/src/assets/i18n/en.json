@@ -177,5 +177,13 @@
   "estimated_spent":"Estimated Total Spent",
   "your_persona":"Your Traveler Persona",
   "refine_persona":"Refine Your Persona",
-  "profile":"Profile"
+  "profile":"Profile",
+  "crafting_itinerary":"Crafting Your Itinerary",
+  "generating_message_1": "Consulting the stars for your adventure...",
+  "generating_message_2": "Packing your virtual bags...",
+  "generating_message_3": "Chatting with local guides...",
+  "generating_message_4": "Finding the best photo spots...",
+  "generating_message_5": "Polishing hidden gems...",
+  "generating_message_6": "Crafting your unique story..."
+
 }

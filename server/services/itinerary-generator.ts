@@ -200,14 +200,14 @@ export async function generateItineraryFromData(
     0
   );
 
-  let tripTitle = `A ${persona}'s trip to ${planningData.destination}`;
+  let tripTitle = `A ${persona.name}'s trip to ${planningData.destination}`;
   if (planningData.language && planningData.language !== "en") {
     try {
       const cloudTranslationApiKey = process.env.CLOUD_TRANSLATION_API_KEY;
       if (cloudTranslationApiKey) {
         const translate = new Translate({ key: cloudTranslationApiKey });
-        const [translation] = await translate.translate("A trip to", planningData.language);
-        tripTitle = `${translation} ${planningData.destination}`;
+        const [translation] = await translate.translate(tripTitle, planningData.language);
+        tripTitle = translation;
       }
     } catch (e) {
       console.error("Failed to translate trip title, falling back to English.", e);

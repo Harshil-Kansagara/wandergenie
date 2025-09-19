@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wand2 } from "lucide-react";
+import { t } from "@/lib/translation";
 
-const messages = [
-  "Consulting the stars for your adventure...",
-  "Packing your virtual bags...",
-  "Chatting with local guides...",
-  "Finding the best photo spots...",
-  "Polishing hidden gems...",
-  "Crafting your unique story...",
+
+const messageKeys = [
+  "generating_message_1",
+  "generating_message_2",
+  "generating_message_3",
+  "generating_message_4",
+  "generating_message_5",
+  "generating_message_6",
 ];
 
 export default function GeneratingItineraryPage() {
@@ -16,14 +18,12 @@ export default function GeneratingItineraryPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessageIndex((prevIndex) => (prevIndex + 1) % messages.length);
+      setMessageIndex((prevIndex) => (prevIndex + 1) % messageKeys.length);
     }, 2500); // Change message every 2.5 seconds
 
     // Clear the interval when the component unmounts
     return () => clearInterval(interval);
   }, []);
-
-  const message = messages[messageIndex];
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-muted">
@@ -35,8 +35,8 @@ export default function GeneratingItineraryPage() {
               <Wand2 className="h-12 w-12" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Crafting Your Itinerary</h1>
-          <p className="mt-2 text-muted-foreground">{message}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("crafting_itinerary")}</h1>
+          <p className="mt-2 text-muted-foreground">{t(messageKeys[messageIndex])}</p>
         </CardContent>
       </Card>
     </div>

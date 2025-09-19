@@ -87,7 +87,7 @@ export default function SidebarLayout({ children }: { readonly children: React.R
         <SidebarContent>
           <SidebarMenu>
             <NavItem href="/dashboard" icon={Home} label={t("experiences")} />
-            <NavItem href="/planner" icon={PlusCircle} label={t("new_trip")} />
+            <NavItem href="/quiz" icon={PlusCircle} label={t("new_trip")} />
             <NavItem href="/trips" icon={Briefcase} label={t("my_trips")} />
             <NavItem href="/profile" icon={User} label={t("profile")} />
           </SidebarMenu>
