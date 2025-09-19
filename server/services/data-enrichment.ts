@@ -122,7 +122,7 @@ async function getPlaceDetails(
         },
       }
     );
-    const { userRatingCount, ...rest } = response.data;
+    const { userRatingCount = null, ...rest } = response.data;
     return { ...rest, userRatingsTotal: userRatingCount };
   } catch (error) {
     console.error(`Error fetching details for place ID "${placeId}":`, error);
@@ -166,7 +166,10 @@ async function getTravelTime(
 
     const route = response.data.routes?.[0];
     if (route) {
-      return { duration: route.duration, distanceMeters: route.distanceMeters };
+      return {
+        duration: route.duration,
+        distanceMeters: route.distanceMeters ?? null,
+      };
     }
     return null;
   } catch (error) {

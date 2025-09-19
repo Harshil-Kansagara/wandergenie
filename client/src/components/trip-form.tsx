@@ -95,7 +95,7 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
     onSuccess: (result) => {
       if (result.success && result.data) {
         // The generated itinerary data is in result.data
-        const generatedTrip = result.data;
+        const generatedTripId = result.data;
 
         // Invalidate any queries that might show old trip lists
         queryClient.invalidateQueries({ queryKey: ["trips"] });
@@ -107,7 +107,7 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
         });
 
         // Navigate to the itinerary page and pass the generated data in the state
-        setLocation(`/itinerary/${generatedTrip.id}`, { state: { trip: generatedTrip }, replace: true });
+        setLocation(`/itinerary/${generatedTripId}`);
       }
     },
     onError: (error: any) => {

@@ -135,14 +135,14 @@ export class FirebaseStorage implements IStorage {
     return snapshot.docs.map((doc) => doc.data() as Trip);
   }
 
-  async createTrip(insertTrip: Trip): Promise<Trip> {
-    const userId =
-      insertTrip.userId === "undefined" ? "anonymous" : insertTrip.userId;
-    const tripCollection = this.trips.doc(userId).collection("userTrips");
+  async createTrip(insertTrip: Omit<Trip, "id">): Promise<Trip> {
+    const tripCollection = this.trips
+      .doc(insertTrip.userId)
+      .collection("userTrips");
     const newTripRef = tripCollection.doc();
     const trip: Trip = {
       ...insertTrip,
-      userId: userId,
+      userId: insertTrip.userId,
       id: newTripRef.id,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -155,7 +155,9 @@ export class FirebaseStorage implements IStorage {
       destinationLatLng: insertTrip.destinationLatLng ?? null,
     };
     await newTripRef.set(trip);
-    await this.tripLookups.doc(newTripRef.id).set({ userId: userId });
+    await this.tripLookups
+      .doc(newTripRef.id)
+      .set({ userId: insertTrip.userId });
     return trip;
   }
 

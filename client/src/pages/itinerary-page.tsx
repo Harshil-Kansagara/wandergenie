@@ -21,11 +21,12 @@ const ItineraryPageSkeleton = () => (
   </div>
 );
 
-async function fetchTrip(userId: string ,tripId: string): Promise<{ success: boolean, data: Trip }> {
-    if (!userId || !tripId) {
-    throw new Error("User ID and Trip ID are required");
-  }
-  return apiClient.get(`/api/trips/${userId}/${tripId}`);
+async function fetchTrip(tripId: string, userId: string): Promise<{ success: boolean, data: Trip }> {
+  // 1. fetch the trip from the API.
+  // This happens when clicking a link from the dashboard.
+  const response = await apiClient.get(`/api/trips/${userId}/${tripId}`);
+  if (!response.success) throw new Error(response.error || "Trip not found");
+  return response;
 }
 
 export default function ItineraryPage() {
@@ -35,9 +36,10 @@ export default function ItineraryPage() {
   const tripId = params?.id;
 
   const { data: result, isLoading, error } = useQuery({
+    // Add user.uid to the queryKey to refetch if the user changes
     queryKey: ["trip", tripId, user?.uid],
-    queryFn: () => fetchTrip(user?.uid || 'anonymous', tripId!),
-    enabled: !!tripId && !authLoading,
+    queryFn: () => fetchTrip(tripId!, user?.uid || 'anonymous'),
+    enabled: !!tripId && !authLoading, // Run as long as we have a tripId and auth state is resolved
   });
 
   if (isLoading) {
