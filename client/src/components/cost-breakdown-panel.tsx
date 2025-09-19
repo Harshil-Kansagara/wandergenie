@@ -9,6 +9,8 @@ import { Separator } from './ui/separator';
 import { useCurrency } from '@/hooks/use-currency';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
+import { t } from "@/lib/translation";
+
 
 interface CostBreakdownPanelProps {
   isOpen: boolean;
@@ -87,7 +89,7 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
             className="fixed top-0 right-0 h-full w-full max-w-md bg-card text-card-foreground shadow-2xl z-50 flex flex-col"
           >
             <header className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-semibold">Cost Breakdown</h2>
+              <h2 className="text-xl font-semibold">{t("cost_breakdown")}</h2>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-5 w-5" />
               </Button>
@@ -97,13 +99,13 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
               <div className="p-6 space-y-8">
                 {/* Budget Summary */}
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Budget Summary</h3>
+                  <h3 className="text-lg font-medium mb-2">{t("budget_summary")}</h3>
                   <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-muted-foreground">Amount Spent</span>
+                    <span className="text-muted-foreground">{t("amount_spent")}</span>
                     <span className="text-2xl font-bold">{formatCurrency(totalSpent, currency)}</span>
                   </div>
                   <div className="flex justify-between items-baseline text-sm mb-2">
-                    <span className="text-muted-foreground">Total Budget</span>
+                    <span className="text-muted-foreground">{t("total_budget")}</span>
                     <span>{formatCurrency(budgetAmount, currency)}</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2.5">
@@ -118,10 +120,10 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
 
                 {/* Interactive Budget Adjustment */}
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Adjust Your Budget</h3>
+                  <h3 className="text-lg font-medium mb-4">{t("adjust_budget")}</h3>
                   <div className="space-y-4 rounded-lg border p-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Your New Budget</h4>
+                      <h4 className="font-medium">{t("new_budget")}</h4>
                       <Input
                         type="number"
                         value={adjustableBudget}
@@ -137,20 +139,20 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
                     />
                     <div className="text-center text-sm">
                       {budgetDifference >= 0 ? (
-                        <p className="text-green-600">{formatCurrency(budgetDifference, currency)} under new budget</p>
+                        <p className="text-green-600">{formatCurrency(budgetDifference, currency)} {t("under_budget")}</p>
                       ) : (
-                        <p className="text-red-600">{formatCurrency(Math.abs(budgetDifference), currency)} over new budget</p>
+                        <p className="text-red-600">{formatCurrency(Math.abs(budgetDifference), currency)} {t("over_budget")}</p>
                       )}
                     </div>
                     <Button onClick={handleReplanClick} className="w-full" variant="secondary">
-                      <Wand2 className="mr-2 h-4 w-4" /> Re-plan with New Budget
+                      <Wand2 className="mr-2 h-4 w-4" /> {t("replan_budget")}
                     </Button>
                   </div>
                 </div>
 
                 {/* Visual Breakdown */}
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Category Breakdown</h3>
+                  <h3 className="text-lg font-medium mb-4">{t("category_breakdown")}</h3>
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
@@ -166,11 +168,11 @@ export const CostBreakdownPanel: React.FC<CostBreakdownPanelProps> = ({ isOpen, 
 
                 {/* Daily Breakdown */}
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Daily Costs</h3>
+                  <h3 className="text-lg font-medium mb-2">{t("daily_costs")}</h3>
                   <div className="space-y-2 rounded-lg border p-4">
                     {dailyCosts?.map(item => (
                       <div key={item.day} className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Day {item.day}</span>
+                        <span className="text-muted-foreground">{t("day")} {item.day}</span>
                         <span className="font-medium">{formatCurrency(item.total, currency)}</span>
                       </div>
                     ))}

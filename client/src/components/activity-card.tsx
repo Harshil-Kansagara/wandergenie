@@ -100,7 +100,7 @@ export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: stri
         <div className="bg-muted/50 px-4 py-2 border-t flex items-center text-xs text-muted-foreground italic">
           <Footprints className="mr-2 h-3.5 w-3.5 text-primary" />
           <span>
-            Travel to next activity: ~
+            {t("travel_next_activity")}: ~
             {Math.round(parseInt(activity.travelToNext?.duration ?? '0') / 60)} min (
             {((activity.travelToNext?.distanceMeters ?? 0) / 1000).toFixed(1)} km)
           </span>

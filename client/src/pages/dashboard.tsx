@@ -101,8 +101,7 @@ export default function Dashboard() {
       <main className="container mx-auto py-12 px-4">
         {/* 1. Personalized Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold">Welcome back, {user?.displayName || "Explorer"}!</h1>
-          <p className="text-lg text-muted-foreground mt-2">Ready to plan your next adventure?</p>
+          <h1 className="text-4xl font-bold">{t("welcome")}, {user?.email || t("explorer")}!</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -113,12 +112,12 @@ export default function Dashboard() {
               <Link href="/planner" className="block">
                 <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="text-center md:text-left">
-                    <h2 className="text-2xl font-bold text-primary">Plan a New Trip</h2>
-                    <p className="text-muted-foreground mt-1">Let our AI craft your next perfect journey.</p>
+                    <h2 className="text-2xl font-bold text-primary">{t("create_new_trip")}</h2>
+                    <p className="text-muted-foreground mt-1">{t("ai_powered_planning_description")}</p>
                   </div>
                   <Button size="lg" className="bg-primary text-primary-foreground px-8 py-6 text-base shrink-0">
                     <Wand2 className="mr-2 h-5 w-5" />
-                    Start Your Next Adventure
+                    {t("hero_cta")}
                   </Button>
                 </CardContent>
               </Link>
@@ -129,7 +128,7 @@ export default function Dashboard() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold">{trips?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Trips Planned</p>
+                  <p className="text-sm text-muted-foreground">{t("trips_planned")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -142,7 +141,7 @@ export default function Dashboard() {
                       )}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">Estimated Total Spent</p>
+                  <p className="text-sm text-muted-foreground">{t("estimated_spent")}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -153,7 +152,7 @@ export default function Dashboard() {
                       {Array.from(new Set(trips?.map(t => t.destination) || [])).length}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">Destinations</p>
+                  <p className="text-sm text-muted-foreground">{t("destinations")}</p>
                 </CardContent>
               </Card>
             </div>
@@ -211,7 +210,7 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-primary" />
-                  Your Traveler Persona
+                  {t("your_persona")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center">
@@ -219,14 +218,14 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground mb-4">70% Cultural, 30% Gastronomic</p>
                 <Button variant="outline" asChild>
                   <Link href="/quiz">
-                    Refine Your Persona <ChevronRight className="h-4 w-4 ml-1" />
+                    {t("refine_persona")} <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
               </CardContent>
             </Card>
 
             {/* 5. The "Learning" Card */}
-            <Card className="bg-secondary/10 border-secondary/20">
+            {/* <Card className="bg-secondary/10 border-secondary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-secondary">
                   <BrainCircuit className="h-5 w-5" />
@@ -238,7 +237,7 @@ export default function Dashboard() {
                   "We've noticed you love exploring local markets and historical sites. We'll prioritize these in your next adventure."
                 </p>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </main>

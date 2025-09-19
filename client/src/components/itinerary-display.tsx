@@ -121,11 +121,11 @@ export const ItineraryDisplay: React.FC<{
               }}
             >
               <Heart className="mr-2 h-4 w-4" />
-              Save
+              {t("save")}
             </Button>
             <Button variant="outline" onClick={handleShareClick}>
               <Share2 className="mr-2 h-4 w-4" />
-              Share
+              {t("share")}
             </Button>
             <CostBreakdownButton onClick={() => setIsCostPanelOpen(true)} currency={itinerary.currency} />
           </div>

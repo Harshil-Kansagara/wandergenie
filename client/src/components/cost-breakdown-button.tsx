@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { DollarSign, Euro, PoundSterling, IndianRupee, LucideIcon } from 'lucide-react';
+import { t } from "@/lib/translation";
+
 
 interface CostBreakdownButtonProps {
   onClick: () => void;
@@ -28,7 +30,7 @@ export const CostBreakdownButton: React.FC<CostBreakdownButtonProps> = ({ onClic
     <Button onClick={onClick} variant="outline">
       <Icon className="h-4 w-4 mr-2" />
       <span className="sr-only">Open Cost Breakdown</span>
-      Cost Breakdown
+     {t("cost_breakdown")}
     </Button>
   );
 };

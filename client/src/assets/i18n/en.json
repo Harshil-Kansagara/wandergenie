@@ -159,6 +159,23 @@
   "no_trips":"You haven't created any trips yet.",
   "Morning":"Morning",
   "Evening":"Evening",
-  "Afternoon":"Afternoon"
-
+  "Afternoon":"Afternoon",
+  "cost_breakdown":"Cost Breakdown",
+  "travel_next_activity":"Travel to next activity",
+  "budget_summary":"Budget Summary",
+  "amount_spent":"Amount Spent",
+  "total_budget":"Total Budget",
+  "adjust_budget":"Adjust your budget",
+  "new_budget":"Your New Budget",
+  "under_budget":"under new budget",
+  "over_budget":"over new budget",
+  "replan_budget":"Re-plan with New Budget",
+  "category_breakdown":"Category Breakdown",
+  "daily_costs":"Daily Costs",
+  "welcome":"Welcome back",
+  "explorer":"Explorer",
+  "estimated_spent":"Estimated Total Spent",
+  "your_persona":"Your Traveler Persona",
+  "refine_persona":"Refine Your Persona",
+  "profile":"Profile"
 }

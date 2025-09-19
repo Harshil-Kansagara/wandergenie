@@ -35,6 +35,7 @@ import {
   useSidebar,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { t } from "@/lib/translation";
 
 interface NavItemProps {
   readonly href: string;
@@ -85,10 +86,10 @@ export default function SidebarLayout({ children }: { readonly children: React.R
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <NavItem href="/dashboard" icon={Home} label="Dashboard" />
-            <NavItem href="/planner" icon={PlusCircle} label="Plan a New Trip" />
-            <NavItem href="/trips" icon={Briefcase} label="My Trips" />
-            <NavItem href="/profile" icon={User} label="Profile" />
+            <NavItem href="/dashboard" icon={Home} label={t("experiences")} />
+            <NavItem href="/planner" icon={PlusCircle} label={t("new_trip")} />
+            <NavItem href="/trips" icon={Briefcase} label={t("my_trips")} />
+            <NavItem href="/profile" icon={User} label={t("profile")} />
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>

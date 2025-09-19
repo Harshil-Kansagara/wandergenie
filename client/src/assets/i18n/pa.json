@@ -159,5 +159,24 @@
   "no_trips": "ਤੁਸੀਂ ਅਜੇ ਤੱਕ ਕੋਈ ਯਾਤਰਾ ਨਹੀਂ ਬਣਾਈ ਹੈ।",
   "Morning":"ਸਵੇਰ",
   "Evening":"ਸ਼ਾਮ",
-  "Afternoon":"ਦੁਪਹਿਰ"
+  "Afternoon":"ਦੁਪਹਿਰ",
+  "cost_breakdown":"ਲਾਗਤ ਦਾ ਵੇਰਵਾ",
+  "travel_next_activity":"ਅਗਲੀ ਗਤੀਵਿਧੀ ਲਈ ਯਾਤਰਾ ਕਰੋ",
+    "budget_summary":"ਬਜਟ ਦਾ ਸਾਰ",
+  "amount_spent":"ਖਰਚ ਕੀਤੀ ਗਈ ਰਕਮ",
+  "total_budget":"ਕੁੱਲ ਬਜਟ",
+  "adjust_budget":"ਆਪਣੇ ਬਜਟ ਨੂੰ ਐਡਜਸਟ ਕਰੋ",
+  "new_budget":"ਤੁਹਾਡਾ ਨਵਾਂ ਬਜਟ",
+  "under_budget":"ਨਵੇਂ ਬਜਟ ਦੇ ਤਹਿਤ",
+  "over_budget":"ਨਵੇਂ ਬਜਟ ਤੋਂ ਵੱਧ",
+  "replan_budget":"ਨਵੇਂ ਬਜਟ ਨਾਲ ਮੁੜ ਯੋਜਨਾ ਬਣਾਓ",
+  "category_breakdown":"ਸ਼੍ਰੇਣੀ ਵੰਡ",
+  "daily_costs":"ਰੋਜ਼ਾਨਾ ਖਰਚੇ",
+  "welcome":"ਜੀ ਆਇਆਂ ਨੂੰ",
+  "explorer":"ਐਕਸਪਲੋਰਰ",
+    "estimated_spent":"ਅੰਦਾਜ਼ਨ ਕੁੱਲ ਖਰਚ",
+     "your_persona":"ਤੁਹਾਡਾ ਯਾਤਰੀ ਵਿਅਕਤੀ",
+    "refine_persona":"ਆਪਣੀ ਸ਼ਖ਼ਸੀਅਤ ਨੂੰ ਨਿਖਾਰੋ",
+    "profile":"ਪ੍ਰੋਫਾਈਲ"    
+
 }

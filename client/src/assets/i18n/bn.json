@@ -159,5 +159,24 @@
   "no_trips": "আপনি এখনও কোনো ট্রিপ তৈরি করেননি।",
   "Morning":"সকাল",
   "Evening":"সন্ধ্যা",
-  "Afternoon":"বিকাল"
+  "Afternoon":"বিকাল",
+  "cost_breakdown":"খরচের ভাঙ্গন",
+  "travel_next_activity":"পরবর্তী কাজে ভ্রমণ করুন",
+  "budget_summary":"বাজেটের সারাংশ",
+  "amount_spent":"ব্যয়ের পরিমাণ",
+  "total_budget":"মোট বাজেট",
+  "adjust_budget":"আপনার বাজেট সামঞ্জস্য করুন",
+  "new_budget":"আপনার নতুন বাজেট",
+  "under_budget":"নতুন বাজেটের অধীনে",
+  "over_budget":"নতুন বাজেটের বাইরে",
+  "replan_budget":"নতুন বাজেটের সাথে পুনর্পরিকল্পনা করুন",
+  "category_breakdown":"বিভাগ বিভাজন",
+  "daily_costs":"দৈনিক খরচ",
+  "welcome":"পুনরায় স্বাগতম",
+  "explorer":"অনুসন্ধানকারী",
+    "estimated_spent":"আনুমানিক মোট ব্যয়",
+     "your_persona":"আপনার ভ্রমণকারী ব্যক্তিত্ব",
+    "refine_persona":"আপনার ব্যক্তিত্বকে পরিমার্জিত করুন",
+     "profile":"প্রোফাইলের"
+
 }
