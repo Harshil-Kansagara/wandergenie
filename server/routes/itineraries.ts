@@ -15,6 +15,6 @@ router.post("/", catchAsync(saveItinerary));
 router.get("/:id", catchAsync(getItinerary));
 
 // linked user to itinerary
-router.patch("/", catchAsync(linkedUserToItinerary));
+router.patch("/:id", catchAsync(linkedUserToItinerary));
 
 export default router;

@@ -4,6 +4,7 @@ import {
   createItinerary,
   getItinerariesByUser,
   getItineraryById,
+  updateItinerary,
 } from "server/services/itinerary-service";
 import { ApiResponse } from "server/utils/api-response";
 import { AppError } from "server/middlewares/errorHandler";
@@ -45,4 +46,18 @@ export const getUserItineraries = async (req: Request, res: Response) => {
   res.status(200).json(ApiResponse.success(itineraries));
 };
 
-export const linkedUserToItinerary = async (req: Request, res: Response) => {};
+/**
+ * Updates an itinerary, typically to link an anonymous itinerary to a user.
+ * @param req The Express request object, containing the itinerary `id` and `userId` in the body.
+ * @param res The Express response object.
+ */
+export const linkedUserToItinerary = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    throw new AppError("User ID is required to link the itinerary.", 400);
+  }
+  const updatedItinerary = await updateItinerary(id, { userId });
+  res.status(200).json(ApiResponse.success(updatedItinerary));
+};

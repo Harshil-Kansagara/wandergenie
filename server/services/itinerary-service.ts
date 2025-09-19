@@ -29,3 +29,16 @@ export const getItinerariesByUser = async (
 ): Promise<Itinerary[]> => {
   return await storage.getUserItineraries(userId);
 };
+
+/**
+ * Partially updates an existing itinerary in the database.
+ * @param id The ID of the itinerary to update.
+ * @param updates A partial itinerary object with the fields to update.
+ * @returns The updated itinerary object.
+ */
+export const updateItinerary = async (
+  id: string,
+  updates: Partial<Omit<Itinerary, "id" | "createdAt" | "updatedAt">>
+): Promise<Itinerary> => {
+  return await storage.updateItinerary(id, updates);
+};

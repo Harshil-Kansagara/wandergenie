@@ -11,8 +11,6 @@ import { CostBreakdownButton } from "./cost-breakdown-button";
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import { t } from "@/lib/translation";
 
 
@@ -24,22 +22,6 @@ export const ItineraryDisplay: React.FC<{
   const [hoveredActivityIndex, setHoveredActivityIndex] = useState<number | null>(null);
   const { user, setIsSignInOpen, saveItineraryTemporarily } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // TODO: update itinerary (linked to userId)
-  const saveItineraryMutation = useMutation({
-    mutationFn: (itinerary: Itinerary) => apiRequest('POST', '/api/itineraries', itinerary),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
-      toast({
-        title: "Itinerary linked with user successfully!",
-        description: "Your adventure is waiting for you in 'My Itineraries'.",
-      });
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Could not save your itinerary. Please try again.", variant: "destructive" });
-    }
-  });
 
   const handleShareClick = async () => {
     const formattedStartDate = format(new Date(itinerary.startDate), "MMM d");
@@ -110,20 +92,21 @@ export const ItineraryDisplay: React.FC<{
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (user) {
-                  saveItineraryMutation.mutate(itinerary);
-                } else {
+            {!user && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // When an anonymous user clicks save, we store the itinerary
+                  // and prompt them to sign in. The actual linking happens
+                  // in the SignIn component after a successful login.
                   saveItineraryTemporarily(itinerary);
                   setIsSignInOpen(true);
-                }
-              }}
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              {t("save")}
-            </Button>
+                }}
+              >
+                <Heart className="mr-2 h-4 w-4" />
+                {t("save")}
+              </Button>
+            )}
             <Button variant="outline" onClick={handleShareClick}>
               <Share2 className="mr-2 h-4 w-4" />
               {t("share")}

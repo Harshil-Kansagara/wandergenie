@@ -55,6 +55,10 @@ export interface IStorage {
     itinerary: Omit<Itinerary, "id" | "createdAt" | "updatedAt">
   ): Promise<Itinerary>;
   getItineraryById(id: string): Promise<Itinerary | undefined>;
+  updateItinerary(
+    id: string,
+    updates: Partial<Omit<Itinerary, "id" | "createdAt" | "updatedAt">>
+  ): Promise<Itinerary>;
 }
 
 export class FirebaseStorage implements IStorage {
@@ -133,6 +137,20 @@ export class FirebaseStorage implements IStorage {
   async getItineraryById(id: string): Promise<Itinerary | undefined> {
     const doc = await this.itineraries.doc(id).get();
     return doc.exists ? (doc.data() as Itinerary) : undefined;
+  }
+
+  async updateItinerary(
+    id: string,
+    updates: Partial<Omit<Itinerary, "id" | "createdAt" | "updatedAt">>
+  ): Promise<Itinerary> {
+    const itineraryRef = this.itineraries.doc(id);
+    await itineraryRef.update({
+      ...updates,
+      updatedAt: new Date(),
+    });
+
+    const updatedDoc = await itineraryRef.get();
+    return updatedDoc.data() as Itinerary;
   }
 
   async getUserItineraries(userId: string): Promise<Itinerary[]> {

@@ -24,35 +24,36 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { getAndClearTemporaryItinerary } = useAuth();
   const { t } = useTranslation();
-  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
   const saveItineraryMutation = useMutation({
-    mutationFn: (itinerary: Itinerary) => apiRequest('POST', '/api/itineraries', itinerary),
-    onSuccess: async (data) => {
-      const savedItinerary = await data.json();
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
+    // Update the existing itinerary with the new userId
+    mutationFn: (itinerary: Itinerary): Promise<Itinerary> =>
+      apiRequest('PATCH', `/api/itineraries/${itinerary.id}`, { userId: itinerary.userId }).then(res => res.json()).then(apiResponse => apiResponse.data),
+    onSuccess: (savedItinerary) => {
+      queryClient.setQueryData(['itinerary', savedItinerary.id, auth.currentUser?.uid], { success: true, data: savedItinerary });
+
+      // Also invalidate the general list of trips so it's fresh on the next visit to the dashboard.
+      queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+      
       toast({
         title: "Itinerary Saved!",
-        description: `Your itinerary to ${savedItinerary.destination} has been saved.`,
+        description: `Your itinerary to ${savedItinerary.destination.name} has been saved.`,
       });
-      setLocation("/trips");
+      // onSuccess callback from props will close the dialog. No redirect needed.
     },
     onError: () => {
       toast({ title: "Error", description: "Could not save your itinerary after login. Please save it again.", variant: "destructive" });
-      setLocation("/dashboard");
     }
   });
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = async () => {
     const tempItinerary = getAndClearTemporaryItinerary();
     const currentUser = auth.currentUser;
     if (tempItinerary && currentUser) {
       // Overwrite the anonymous userId with the real one before saving.
       const itineraryToSave = { ...tempItinerary, userId: currentUser.uid };
-      saveItineraryMutation.mutate(itineraryToSave);
-    } else {
-      setLocation("/dashboard");
+      await saveItineraryMutation.mutateAsync(itineraryToSave);
     }
     onSuccess();
   };
