@@ -52,14 +52,14 @@ export interface ItineraryDay {
 export interface EnrichedActivity extends Activity {
   id?: string;
   rating?: number;
-  userRatingsTotal?: number;
+  userRatingsTotal?: number | null;
   photos?: { name: string }[];
   location?: { latitude: number; longitude: number };
   formattedAddress?: string;
   websiteUri?: string;
   travelToNext?: {
     duration: string;
-    distanceMeters: number;
+    distanceMeters?: number | null;
   };
 }
 
@@ -105,7 +105,7 @@ export interface Trip {
     days: ItineraryDay[];
   } | null;
   costBreakdown?: CostBreakdown | null;
-  status: "draft" | "confirmed" | "completed";
+  status: "draft" | "confirmed" | "past";
   createdAt: Date;
   updatedAt: Date;
 }

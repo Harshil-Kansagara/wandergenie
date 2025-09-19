@@ -14,7 +14,7 @@ export const generateItinerary = async (req: Request, res: Response) => {
   const planningData = tripPlanningSchema.parse(req.body);
   console.log("Received planning data:", planningData);
 
-  const trip = await generateAndSaveItinerary(planningData);
+  const newTripId = await generateAndSaveItinerary(planningData);
 
-  res.status(200).json(ApiResponse.success(trip, 200));
+  res.status(201).json(ApiResponse.success(newTripId, 201));
 };

@@ -7,7 +7,9 @@ import { storage } from "../models/storage";
  * @param userId The ID of the user who owns the trip.
  * @returns The newly created trip object.
  */
-export const createTripForUser = async (tripData: Trip): Promise<string> => {
+export const createTripForUser = async (
+  tripData: Omit<Trip, "id">
+): Promise<string> => {
   // The storage.createTrip method should handle setting the id, createdAt, etc.
   const newTrip = await storage.createTrip(tripData);
   return newTrip.id;

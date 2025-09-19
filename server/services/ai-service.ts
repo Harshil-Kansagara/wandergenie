@@ -49,21 +49,13 @@ export const generateAndSaveItinerary = async (
   // 4. Save the complete trip to the database with a 'draft' status
   const newTripId = await createTripForUser({
     ...generatedTripData,
-    userId: planningData.userId,
+    userId: planningData.userId!,
     status: "draft",
     createdAt: new Date(),
     updatedAt: new Date(),
   });
 
-  const fullTrip: Trip = {
-    ...generatedTripData,
-    userId: planningData.userId,
-    id: newTripId,
-    status: "draft",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  return fullTrip;
+  return newTripId;
 };
 
 /**
