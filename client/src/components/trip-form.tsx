@@ -107,7 +107,7 @@ export default function TripForm({ persona, renderInCard = true }: Readonly<Trip
         });
 
         // Navigate to the itinerary page and pass the generated data in the state
-        setLocation(`/itinerary/view`, { state: { trip: generatedTrip }, replace: true });
+        setLocation(`/itinerary/${generatedTrip.id}`, { state: { trip: generatedTrip }, replace: true });
       }
     },
     onError: (error: any) => {

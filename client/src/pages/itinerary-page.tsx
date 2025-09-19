@@ -22,9 +22,6 @@ const ItineraryPageSkeleton = () => (
 );
 
 async function fetchTrip(userId: string ,tripId: string): Promise<{ success: boolean, data: Trip }> {
-    // This is a mock implementation. You would replace this with a real API call.
-    // For example: return apiClient.get(`/api/trips/${tripId}`);
-    // For now, we'll simulate a delay and return the data from history state if available.
     if (!userId || !tripId) {
     throw new Error("User ID and Trip ID are required");
   }
@@ -38,9 +35,9 @@ export default function ItineraryPage() {
   const tripId = params?.id;
 
   const { data: result, isLoading, error } = useQuery({
-    queryKey: ["trip", tripId],
+    queryKey: ["trip", tripId, user?.uid],
     queryFn: () => fetchTrip(user?.uid || 'anonymous', tripId!),
-    enabled: !!tripId,
+    enabled: !!tripId && !authLoading,
   });
 
   if (isLoading) {

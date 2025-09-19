@@ -13,6 +13,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { t } from "@/lib/translation";
+
 
 export const ItineraryDisplay: React.FC<{
   itinerary: Trip & { persona?: Persona };
@@ -165,7 +167,7 @@ export const ItineraryDisplay: React.FC<{
             <div className="p-4 border-b">
               <TabsList>
                 {itinerary.itinerary?.days.map((day: ItineraryDay) => (
-                  <TabsTrigger key={day.day} value={String(day.day)} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Day {day.day}</TabsTrigger>
+                  <TabsTrigger key={day.day} value={String(day.day)} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t("day")} {day.day}</TabsTrigger>
                 ))}
               </TabsList>
             </div>

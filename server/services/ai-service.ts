@@ -4,6 +4,7 @@ import {
   Trip,
   TripPlanningRequest,
 } from "@shared/schema";
+import { ItineraryDay } from "@shared/schema";
 import { db } from "../config/firebase";
 import { AppError } from "../middlewares/errorHandler";
 import { geocodeDestination } from "./geocoding-service";
@@ -45,6 +46,17 @@ export const generateAndSaveItinerary = async (
     ...(await generateItineraryFromData(planningData, persona)),
     destinationLatLng: planningData.destinationLatLng,
   };
+
+  // Ensure userRatingsTotal is null if undefined
+  if (generatedTripData.itinerary?.days) {
+    generatedTripData.itinerary.days.forEach((day: ItineraryDay) => {
+      day.activities.forEach((activity: EnrichedActivity) => {
+        if (activity.userRatingsTotal === undefined) {
+          activity.userRatingsTotal = null;
+        }
+      });
+    });
+  }
 
   // 4. Save the complete trip to the database with a 'draft' status
   const newTripId = await createTripForUser({

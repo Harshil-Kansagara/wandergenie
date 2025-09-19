@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCurrency } from "@/hooks/use-currency";
+import { t } from "@/lib/translation";
+
 
 const getPlacePhotoUrl = (photoName: string) => {
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -73,7 +75,7 @@ export const ActivityCard: React.FC<{ activity: EnrichedActivity, currency: stri
           <CardHeader className="flex flex-row items-start justify-between p-4">
             <div>
               <Badge variant="outline" className="mb-2">
-                {activity.timeOfDay}
+                {t(activity.timeOfDay)}
               </Badge>
               <CardTitle className="text-xl">{activity.activityName}</CardTitle>
             </div>

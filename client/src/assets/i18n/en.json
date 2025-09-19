@@ -156,6 +156,9 @@
   "my_trips":"My trips",
   "loading_quiz":"Loading quiz",
   "loading_trips":"Loading trips",
-  "no_trips":"You haven't created any trips yet."
+  "no_trips":"You haven't created any trips yet.",
+  "Morning":"Morning",
+  "Evening":"Evening",
+  "Afternoon":"Afternoon"
 
 }
