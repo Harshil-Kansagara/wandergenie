@@ -8,3 +8,7 @@ vite.config.ts.*
 .gitignore
 .local/state/replit/agent/rapid_build_started
 .local/state/replit/agent/rapid_build_success
+.local/
+.vscode/
+.idx/
+.env
