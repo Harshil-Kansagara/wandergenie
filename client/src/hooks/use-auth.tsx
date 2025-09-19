@@ -1,10 +1,10 @@
-import { useEffect, useState, createContext, useContext, ReactNode } from "react";
+import { useEffect, useState, createContext, useContext, ReactNode, useMemo, useCallback } from "react";
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/firebase";
 import { useLocation } from "wouter";
-import { Trip } from "@shared/schema";
+import { Itinerary } from "@shared/schema";
 
-const TEMP_TRIP_STORAGE_KEY = 'temp-trip-for-save';
+const TEMP_ITINERARY_STORAGE_KEY = 'temp-itinerary-for-save';
 
 interface AuthContextType {
   user: User | null;
@@ -12,8 +12,8 @@ interface AuthContextType {
   signOut: () => void;
   isSignInOpen: boolean;
   setIsSignInOpen: (isOpen: boolean) => void;
-  saveTripTemporarily: (trip: Trip) => void;
-  getAndClearTemporaryTrip: () => Trip | null;
+  saveItineraryTemporarily: (trip: Itinerary) => void;
+  getAndClearTemporaryItinerary: () => Itinerary | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,32 +33,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signOut = () => {
+  const signOut = useCallback(() => {
     firebaseSignOut(auth).then(() => {
       setUser(null);
       setLocation("/");
     });
-  };
+  }, [setLocation]);
 
-  const saveTripTemporarily = (trip: Trip) => {
-    localStorage.setItem(TEMP_TRIP_STORAGE_KEY, JSON.stringify(trip));
-  };
+  const saveItineraryTemporarily = useCallback((itinerary: Itinerary) => {
+    localStorage.setItem(TEMP_ITINERARY_STORAGE_KEY, JSON.stringify(itinerary));
+  }, []);
 
-  const getAndClearTemporaryTrip = (): Trip | null => {
-    const tripJson = localStorage.getItem(TEMP_TRIP_STORAGE_KEY);
-    if (tripJson) {
-      localStorage.removeItem(TEMP_TRIP_STORAGE_KEY);
+  const getAndClearTemporaryItinerary = useCallback((): Itinerary | null => {
+    const itineraryJson = localStorage.getItem(TEMP_ITINERARY_STORAGE_KEY);
+    if (itineraryJson) {
+      localStorage.removeItem(TEMP_ITINERARY_STORAGE_KEY);
       try {
-        return JSON.parse(tripJson);
+        return JSON.parse(itineraryJson);
       } catch (e) {
-        console.error("Error parsing temporary trip JSON:", e);
+        console.error("Error parsing temporary itinerary JSON:", e);
         return null;
       }
     }
     return null;
-  };
+  }, []);
 
-  const value = { user, loading, signOut, isSignInOpen, setIsSignInOpen, saveTripTemporarily, getAndClearTemporaryTrip };
+  const value = useMemo(() => ({
+    user,
+    loading,
+    signOut,
+    isSignInOpen,
+    setIsSignInOpen,
+    saveItineraryTemporarily,
+    getAndClearTemporaryItinerary
+  }), [user, loading, signOut, isSignInOpen, saveItineraryTemporarily, getAndClearTemporaryItinerary]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

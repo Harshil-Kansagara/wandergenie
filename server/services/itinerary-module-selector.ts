@@ -71,16 +71,16 @@ export function selectItineraryModules(
     const fallbackModule = personaModuleIds.find(
       (id) => id !== arrivalModule && id !== departureModule
     );
-    const itinerary = [arrivalModule];
+    const itineraryModules = [arrivalModule];
     for (let i = 0; i < durationInDays - 2; i++) {
-      itinerary.push(fallbackModule || personaModuleIds[0]);
+      itineraryModules.push(fallbackModule || personaModuleIds[0]);
     }
-    itinerary.push(departureModule);
-    return itinerary;
+    itineraryModules.push(departureModule);
+    return itineraryModules;
   }
 
   // Rule 3: Dynamic Selection & Sequence Building
-  const itinerary: string[] = [arrivalModule];
+  const itineraryModules: string[] = [arrivalModule];
   const daysToFill = durationInDays - 2;
   let lastUsedModuleIndex = -1;
 
@@ -96,13 +96,13 @@ export function selectItineraryModules(
     // for now, we'll use the random selection with repetition guard.
 
     const selectedModule = coreModules[nextModuleIndex];
-    itinerary.push(selectedModule.id);
+    itineraryModules.push(selectedModule.id);
     lastUsedModuleIndex = nextModuleIndex;
   }
 
-  itinerary.push(departureModule);
+  itineraryModules.push(departureModule);
 
-  return itinerary;
+  return itineraryModules;
 }
 
 /**

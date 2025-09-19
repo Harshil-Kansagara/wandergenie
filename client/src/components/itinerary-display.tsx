@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Trip, Persona, ItineraryDay} from "@shared/schema";
+import { Itinerary, Persona, ItineraryDay} from "@shared/schema";
 import { format } from "date-fns";
 import { Calendar, Users, Heart, Share2 } from "lucide-react";
 import MapComponent from "./map-component";
@@ -17,26 +17,27 @@ import { t } from "@/lib/translation";
 
 
 export const ItineraryDisplay: React.FC<{
-  itinerary: Trip & { persona?: Persona };
+  itinerary: Itinerary & { persona?: Persona };
 }> = ({ itinerary, }) => {
   const [activeDay, setActiveDay] = useState(1);
   const [isCostPanelOpen, setIsCostPanelOpen] = useState(false);
   const [hoveredActivityIndex, setHoveredActivityIndex] = useState<number | null>(null);
-  const { user, setIsSignInOpen, saveTripTemporarily } = useAuth();
+  const { user, setIsSignInOpen, saveItineraryTemporarily } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const saveTripMutation = useMutation({
-    mutationFn: (trip: Trip) => apiRequest('POST', '/api/trips', trip),
+  // TODO: update itinerary (linked to userId)
+  const saveItineraryMutation = useMutation({
+    mutationFn: (itinerary: Itinerary) => apiRequest('POST', '/api/itineraries', itinerary),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       toast({
-        title: "Trip Saved!",
-        description: "Your adventure is waiting for you in 'My Trips'.",
+        title: "Itinerary linked with user successfully!",
+        description: "Your adventure is waiting for you in 'My Itineraries'.",
       });
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not save your trip. Please try again.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not save your itinerary. Please try again.", variant: "destructive" });
     }
   });
 
@@ -45,8 +46,8 @@ export const ItineraryDisplay: React.FC<{
     const formattedEndDate = format(new Date(itinerary.endDate), "d, yyyy");
 
     const shareData = {
-      title: `My WanderGenie Trip to ${itinerary.destination}!`,
-      text: `Check out my AI-planned trip to ${itinerary.destination} from ${formattedStartDate} to ${formattedEndDate}. You can plan one too!`,
+      title: `My WanderGenie Itinerary to ${itinerary.destination.name}!`,
+      text: `Check out my AI-planned Itinerary to ${itinerary.destination.name} from ${formattedStartDate} to ${formattedEndDate}. You can plan one too!`,
       url: window.location.href,
     };
 
@@ -59,7 +60,7 @@ export const ItineraryDisplay: React.FC<{
     } else {
       // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link Copied!", description: "The trip URL has been copied to your clipboard." });
+      toast({ title: "Link Copied!", description: "The itinerary URL has been copied to your clipboard." });
     }
   };
 
@@ -113,9 +114,9 @@ export const ItineraryDisplay: React.FC<{
               variant="outline"
               onClick={() => {
                 if (user) {
-                  saveTripMutation.mutate(itinerary);
+                  saveItineraryMutation.mutate(itinerary);
                 } else {
-                  saveTripTemporarily(itinerary);
+                  saveItineraryTemporarily(itinerary);
                   setIsSignInOpen(true);
                 }
               }}
@@ -142,13 +143,13 @@ export const ItineraryDisplay: React.FC<{
               transition={{ duration: 0.5 }}
               className="h-full"
             >
-              {itinerary.destinationLatLng && (
+              {itinerary.destination.latLng && (
                 <MapComponent
                   destination={{
-                    description: itinerary.destination,
+                    description: itinerary.destination.name,
                     latLng: {
-                      latitude: itinerary.destinationLatLng.lat,
-                      longitude: itinerary.destinationLatLng.lng,
+                      latitude: itinerary.destination.latLng.lat,
+                      longitude: itinerary.destination.latLng.lng,
                     },
                   }}
                   waypoints={waypointsForActiveDay}

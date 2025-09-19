@@ -9,7 +9,6 @@ export const tripPlanningSchema = z.object({
   currency: z.string().default("USD"),
   theme: z.string(),
   groupSize: z.number().min(1).max(20).default(2),
-  destinationLatLng: z.object({ lat: z.number(), lng: z.number() }).optional(),
   accommodation: z.string().optional(),
   transport: z.string().optional(),
   language: z.string().default("en"),
@@ -87,20 +86,25 @@ export interface User {
   createdAt: Date;
 }
 
-export interface Trip {
+export interface Itinerary {
   id: string;
   userId: string;
   title: string;
-  destination: string;
-  destinationLatLng?: { lat: number; lng: number } | null;
   startDate: string;
   endDate: string;
   budget: number;
   currency: string;
-  theme: string;
   groupSize?: number | null;
   accommodation?: string | null;
   transport?: string | null;
+  personaSnapshot: {
+    primaryPersona: string;
+    moduleDNA: string[];
+  };
+  destination: {
+    name: string;
+    latLng?: { lat: number; lng: number } | null;
+  };
   itinerary?: {
     days: ItineraryDay[];
   } | null;
@@ -108,6 +112,10 @@ export interface Trip {
   status: "draft" | "confirmed" | "past";
   createdAt: Date;
   updatedAt: Date;
+  overallSentiment?: "positive" | "negative" | "neutral" | null;
+  behavioralSignals?: {
+    timeOnPageInSeconds: number;
+  } | null;
 }
 
 export interface Destination {

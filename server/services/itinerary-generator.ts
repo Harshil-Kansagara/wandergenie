@@ -1,4 +1,9 @@
-import { ItineraryModule, Persona, TripPlanningRequest } from "@shared/schema";
+import {
+  Itinerary,
+  ItineraryModule,
+  Persona,
+  TripPlanningRequest,
+} from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
 import { db } from "../config/firebase";
 import { differenceInDays } from "date-fns";
@@ -120,7 +125,18 @@ async function generateSingleDay(
 export async function generateItineraryFromData(
   planningData: TripPlanningRequest,
   persona: Persona
-) {
+): Promise<
+  Omit<
+    Itinerary,
+    | "id"
+    | "userId"
+    | "destination"
+    | "status"
+    | "overallSentiment"
+    | "createdAt"
+    | "updatedAt"
+  >
+> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new AppError("GEMINI_API_KEY environment variable not set.", 500);
@@ -206,18 +222,27 @@ export async function generateItineraryFromData(
       const cloudTranslationApiKey = process.env.CLOUD_TRANSLATION_API_KEY;
       if (cloudTranslationApiKey) {
         const translate = new Translate({ key: cloudTranslationApiKey });
-        const [translation] = await translate.translate(tripTitle, planningData.language);
+        const [translation] = await translate.translate(
+          tripTitle,
+          planningData.language
+        );
         tripTitle = translation;
       }
     } catch (e) {
-      console.error("Failed to translate trip title, falling back to English.", e);
+      console.error(
+        "Failed to translate trip title, falling back to English.",
+        e
+      );
     }
   }
 
   return {
     ...planningData,
     title: tripTitle,
-    persona, // persona is already part of planningData, but let's keep it for now.
+    personaSnapshot: {
+      primaryPersona: persona.name,
+      moduleDNA: moduleSequence,
+    },
     costBreakdown: {
       ...costBreakdown,
       total: totalCost.toFixed(0),

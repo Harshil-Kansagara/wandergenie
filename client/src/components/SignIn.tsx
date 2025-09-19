@@ -10,6 +10,7 @@ import { useAuth } from "../hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Itinerary } from "@shared/schema";
 
 
 interface SignInProps {
@@ -21,36 +22,35 @@ const SignIn: React.FC<SignInProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
-  const { getAndClearTemporaryTrip } = useAuth();
+  const { getAndClearTemporaryItinerary } = useAuth();
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
-  const saveTripMutation = useMutation({
-    mutationFn: (trip: any) => apiRequest('POST', '/api/trips', trip),
+  const saveItineraryMutation = useMutation({
+    mutationFn: (itinerary: Itinerary) => apiRequest('POST', '/api/itineraries', itinerary),
     onSuccess: async (data) => {
-      const savedTrip = await data.json();
+      const savedItinerary = await data.json();
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       toast({
-        title: "Trip Saved!",
-        description: `Your trip to ${savedTrip.destination} has been saved.`,
+        title: "Itinerary Saved!",
+        description: `Your itinerary to ${savedItinerary.destination} has been saved.`,
       });
       setLocation("/trips");
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not save your trip after login. Please save it again.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not save your itinerary after login. Please save it again.", variant: "destructive" });
       setLocation("/dashboard");
     }
   });
 
   const handleAuthSuccess = () => {
-    const tempTrip = getAndClearTemporaryTrip();
+    const tempItinerary = getAndClearTemporaryItinerary();
     const currentUser = auth.currentUser;
-    console.log(currentUser);
-    if (tempTrip && currentUser) {
+    if (tempItinerary && currentUser) {
       // Overwrite the anonymous userId with the real one before saving.
-      const tripToSave = { ...tempTrip, userId: currentUser.uid };
-      saveTripMutation.mutate(tripToSave);
+      const itineraryToSave = { ...tempItinerary, userId: currentUser.uid };
+      saveItineraryMutation.mutate(itineraryToSave);
     } else {
       setLocation("/dashboard");
     }

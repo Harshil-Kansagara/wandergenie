@@ -1,6 +1,6 @@
 import { Link, useRoute } from "wouter";
 import { ItineraryDisplay } from "@/components/itinerary-display";
-import { Trip } from "@shared/schema";
+import { Itinerary } from "@shared/schema";
 import { useTranslation } from "@/hooks/use-translation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -21,11 +21,11 @@ const ItineraryPageSkeleton = () => (
   </div>
 );
 
-async function fetchTrip(tripId: string, userId: string): Promise<{ success: boolean, data: Trip }> {
+async function fetchItinerary(itineraryId: string, userId: string): Promise<{ success: boolean, data: Itinerary }> {
   // 1. fetch the trip from the API.
   // This happens when clicking a link from the dashboard.
-  const response = await apiClient.get(`/api/trips/${userId}/${tripId}`);
-  if (!response.success) throw new Error(response.error || "Trip not found");
+  const response = await apiClient.get(`/api/itineraries/${itineraryId}`);
+  if (!response.success) throw new Error(response.error || "Itinerary not found");
   return response;
 }
 
@@ -33,13 +33,13 @@ export default function ItineraryPage() {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const [, params] = useRoute("/itinerary/:id");
-  const tripId = params?.id;
+  const itineraryId = params?.id;
 
   const { data: result, isLoading, error } = useQuery({
     // Add user.uid to the queryKey to refetch if the user changes
-    queryKey: ["trip", tripId, user?.uid],
-    queryFn: () => fetchTrip(tripId!, user?.uid || 'anonymous'),
-    enabled: !!tripId && !authLoading, // Run as long as we have a tripId and auth state is resolved
+    queryKey: ["itinerary", itineraryId, user?.uid],
+    queryFn: () => fetchItinerary(itineraryId!, user?.uid || 'anonymous'),
+    enabled: !!itineraryId && !authLoading, // Run as long as we have a tripId and auth state is resolved
   });
 
   if (isLoading) {

@@ -1,63 +1,63 @@
-import { Request, Response } from "express";
-import { storage } from "../models/storage";
-import { ApiResponse } from "../utils/api-response";
-import { AppError } from "../middlewares/errorHandler";
-import { createTripForUser } from "../services/trip-service";
-import { Trip } from "@shared/schema";
+// import { Request, Response } from "express";
+// import { storage } from "../models/storage";
+// import { ApiResponse } from "../utils/api-response";
+// import { AppError } from "../middlewares/errorHandler";
+// import { createTripForUser } from "../services/trip-service";
+// import { Trip } from "@shared/schema";
 
 /**
  * Saves a new trip to the database.
  * @param req The Express request object, containing trip data.
  * @param res The Express response object.
  */
-export const saveTrip = async (req: Request, res: Response) => {
-  const tripData: Trip = req.body;
+// export const saveTrip = async (req: Request, res: Response) => {
+//   const tripData: Trip = req.body;
 
-  const newTrip = await createTripForUser(tripData);
-  res.status(201).json(ApiResponse.success(newTrip, 201));
-};
+//   const newTrip = await createTripForUser(tripData);
+//   res.status(201).json(ApiResponse.success(newTrip, 201));
+// };
 
 /**
  * Retrieves all trips associated with a specific user.
  * @param req The Express request object, containing the `userId` in the URL parameters.
  * @param res The Express response object.
  */
-export const getUserTrips = async (req: Request, res: Response) => {
-  const trips = await storage.getTripsByUser(req.params.userId);
-  res.status(200).json(ApiResponse.success(trips));
-};
+// export const getUserTrips = async (req: Request, res: Response) => {
+//   const trips = await storage.getTripsByUser(req.params.userId);
+//   res.status(200).json(ApiResponse.success(trips));
+// };
 
 /**
  * Retrieves a single, specific trip by its ID and user ID.
  * @param req The Express request object, containing `userId` and trip `id` in the URL parameters.
  * @param res The Express response object.
  */
-export const getTrip = async (req: Request, res: Response) => {
-  const { userId, id } = req.params;
-  const trip = await storage.getTrip(id, userId);
+// export const getTrip = async (req: Request, res: Response) => {
+//   const { userId, id } = req.params;
+//   const trip = await storage.getTrip(id, userId);
 
-  if (!trip) {
-    throw new AppError("Trip not found", 404);
-  }
+//   if (!trip) {
+//     throw new AppError("Trip not found", 404);
+//   }
 
-  res.status(200).json(ApiResponse.success(trip));
-};
+//   res.status(200).json(ApiResponse.success(trip));
+// };
 
 /**
  * Updates an existing trip with new data.
  * @param req The Express request object, containing `userId`, trip `id`, and update data.
  * @param res The Express response object.
  */
-export const updateTrip = async (req: Request, res: Response) => {
-  const { userId, id } = req.params;
-  const updates = req.body;
+// export const updateTrip = async (req: Request, res: Response) => {
+//   const { userId, id } = req.params;
+//   const updates = req.body;
 
-  // Ensure the trip exists before trying to update
-  const existingTrip = await storage.getTrip(id, userId);
-  if (!existingTrip) {
-    throw new AppError("Trip not found", 404);
-  }
+//   // Ensure the trip exists before trying to update
+//   const existingTrip = await storage.getTrip(id, userId);
+//   if (!existingTrip) {
+//     throw new AppError("Trip not found", 404);
+//   }
 
-  const trip = await storage.updateTrip(id, updates, userId);
-  res.status(200).json(ApiResponse.success(trip));
-};
+//   const trip = await storage.updateTrip(id, updates, userId);
+//   res.status(200).json(ApiResponse.success(trip));
+// };

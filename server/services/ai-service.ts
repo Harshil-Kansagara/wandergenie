@@ -1,15 +1,15 @@
 import {
   EnrichedActivity,
   Persona,
-  Trip,
+  Itinerary,
   TripPlanningRequest,
+  ItineraryDay,
 } from "@shared/schema";
-import { ItineraryDay } from "@shared/schema";
 import { db } from "../config/firebase";
 import { AppError } from "../middlewares/errorHandler";
 import { geocodeDestination } from "./geocoding-service";
 import { generateItineraryFromData } from "./itinerary-generator";
-import { createTripForUser } from "./trip-service";
+import { createItinerary } from "./itinerary-service";
 
 /**
  * Orchestrates the entire itinerary generation and saving process.
@@ -30,26 +30,26 @@ export const generateAndSaveItinerary = async (
   const persona = personaDoc.data() as Persona;
 
   // 2. Geocode destination if lat/lng is missing
-  if (!planningData.destinationLatLng) {
-    const latLng = await geocodeDestination(planningData.destination);
-    if (!latLng) {
-      throw new AppError(
-        `Could not find coordinates for destination: "${planningData.destination}"`,
-        400
-      );
-    }
-    planningData = { ...planningData, destinationLatLng: latLng };
+  const latLng = await geocodeDestination(planningData.destination);
+  if (!latLng) {
+    throw new AppError(
+      `Could not find coordinates for destination: "${planningData.destination}"`,
+      400
+    );
   }
 
   // 3. Generate itinerary from AI service
-  const generatedTripData = {
+  const generatedItineraryData = {
     ...(await generateItineraryFromData(planningData, persona)),
-    destinationLatLng: planningData.destinationLatLng,
+    destination: {
+      name: planningData.destination,
+      latLng: latLng,
+    },
   };
 
   // Ensure userRatingsTotal is null if undefined
-  if (generatedTripData.itinerary?.days) {
-    generatedTripData.itinerary.days.forEach((day: ItineraryDay) => {
+  if (generatedItineraryData.itinerary?.days) {
+    generatedItineraryData.itinerary.days.forEach((day: ItineraryDay) => {
       day.activities.forEach((activity: EnrichedActivity) => {
         if (activity.userRatingsTotal === undefined) {
           activity.userRatingsTotal = null;
@@ -58,16 +58,14 @@ export const generateAndSaveItinerary = async (
     });
   }
 
-  // 4. Save the complete trip to the database with a 'draft' status
-  const newTripId = await createTripForUser({
-    ...generatedTripData,
+  // 4. Save the complete itinerary to the database with a 'draft' status
+  const newItineraryId = await createItinerary({
+    ...generatedItineraryData,
     userId: planningData.userId!,
     status: "draft",
-    createdAt: new Date(),
-    updatedAt: new Date(),
   });
 
-  return newTripId;
+  return newItineraryId;
 };
 
 /**
@@ -81,10 +79,10 @@ export const generateAndSaveItinerary = async (
  */
 export async function refineActivity(
   originalActivity: EnrichedActivity,
-  tripContext: Trip
+  itineraryContext: Itinerary
 ): Promise<EnrichedActivity> {
   console.log("Refining activity:", originalActivity.activityName);
-  console.log("Trip context:", tripContext.title);
+  console.log("Itinerary context:", itineraryContext.title);
   // This is a mock response. A real implementation would call an AI model here.
   return {
     ...originalActivity,

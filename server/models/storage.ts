@@ -1,12 +1,14 @@
 import {
   type User,
   // type InsertUser,
-  Trip,
+  // Trip,
   type Destination,
+  Itinerary,
   // type Booking,
   // type InsertBooking,
 } from "@shared/schema";
 import { db } from "../config/firebase";
+import { getItineraryById } from "server/services/itinerary-service";
 
 export interface IStorage {
   // User methods
@@ -24,15 +26,15 @@ export interface IStorage {
   ): Promise<User>;
 
   // Trip methods
-  getTrip(id: string, userId?: string): Promise<Trip | undefined>;
-  getTripsByUser(userId: string): Promise<Trip[]>;
+  // getTrip(id: string, userId?: string): Promise<Trip | undefined>;
+  // getTripsByUser(userId: string): Promise<Trip[]>;
 
-  updateTrip(
-    id: string,
-    updates: Partial<Trip>,
-    userId?: string
-  ): Promise<Trip>;
-  deleteTrip(id: string): Promise<boolean>;
+  // updateTrip(
+  //   id: string,
+  //   updates: Partial<Trip>,
+  //   userId?: string
+  // ): Promise<Trip>;
+  // deleteTrip(id: string): Promise<boolean>;
 
   // Destination methods
   getDestination(id: string): Promise<Destination | undefined>;
@@ -47,11 +49,17 @@ export interface IStorage {
   // getBookingsByUser(userId: string): Promise<Booking[]>;
   // createBooking(booking: InsertBooking): Promise<Booking>;
   // updateBookingStatus(id: string, status: string): Promise<Booking>;
+
+  // Itinerary methods
+  createItinerary(
+    itinerary: Omit<Itinerary, "id" | "createdAt" | "updatedAt">
+  ): Promise<Itinerary>;
+  getItineraryById(id: string): Promise<Itinerary | undefined>;
 }
 
 export class FirebaseStorage implements IStorage {
   private readonly users = db.collection("users");
-  private readonly trips = db.collection("trips");
+  private readonly itineraries = db.collection("itineraries");
   private readonly destinations = db.collection("destinations");
   private readonly bookings = db.collection("bookings");
   private readonly tripLookups = db.collection("tripLookups");
@@ -102,98 +110,132 @@ export class FirebaseStorage implements IStorage {
     return doc.data() as User;
   }
 
-  // Trip methods
-  async getTrip(id: string, userId?: string): Promise<Trip | undefined> {
-    if (userId) {
-      const tripDoc = await this.trips
-        .doc(userId)
-        .collection("userTrips")
-        .doc(id)
-        .get();
-      return tripDoc.exists ? (tripDoc.data() as Trip) : undefined;
-    } else {
-      const lookupDoc = await this.tripLookups.doc(id).get();
-      if (!lookupDoc.exists) {
-        return undefined;
-      }
-      const { userId } = lookupDoc.data() as { userId: string };
-      const tripDoc = await this.trips
-        .doc(userId)
-        .collection("userTrips")
-        .doc(id)
-        .get();
-      return tripDoc.exists ? (tripDoc.data() as Trip) : undefined;
-    }
-  }
-
-  async getTripsByUser(userId: string): Promise<Trip[]> {
-    const userIdToQuery = userId === "undefined" ? "anonymous" : userId;
-    const snapshot = await this.trips
-      .doc(userIdToQuery)
-      .collection("userTrips")
-      .get();
-    return snapshot.docs.map((doc) => doc.data() as Trip);
-  }
-
-  async createTrip(insertTrip: Omit<Trip, "id">): Promise<Trip> {
-    const tripCollection = this.trips
-      .doc(insertTrip.userId)
-      .collection("userTrips");
-    const newTripRef = tripCollection.doc();
-    const trip: Trip = {
-      ...insertTrip,
-      userId: insertTrip.userId,
-      id: newTripRef.id,
+  /**
+   * Create new itinerary in the storage
+   * @param insertItinerary New itinerary database
+   * @returns Object of created itinerary in the database
+   */
+  async createItinerary(
+    insertItinerary: Omit<Itinerary, "id" | "createdAt" | "updatedAt">
+  ): Promise<Itinerary> {
+    const newItineraryId = this.itineraries.doc().id;
+    const newItinerary: Itinerary = {
+      id: newItineraryId,
+      ...insertItinerary,
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: insertTrip.status || "draft",
-      groupSize: insertTrip.groupSize || null,
-      accommodation: insertTrip.accommodation || null,
-      transport: insertTrip.transport || null,
-      itinerary: insertTrip.itinerary || null,
-      costBreakdown: insertTrip.costBreakdown || null,
-      destinationLatLng: insertTrip.destinationLatLng ?? null,
     };
-    await newTripRef.set(trip);
-    await this.tripLookups
-      .doc(newTripRef.id)
-      .set({ userId: insertTrip.userId });
-    return trip;
+
+    await this.itineraries.doc(newItineraryId).set(newItinerary);
+    return newItinerary;
   }
 
-  async updateTrip(
-    id: string,
-    updates: Partial<Trip>,
-    userId?: string
-  ): Promise<Trip> {
-    let tripRef;
-    if (userId) {
-      tripRef = this.trips.doc(userId).collection("userTrips").doc(id);
-    } else {
-      const lookupDoc = await this.tripLookups.doc(id).get();
-      if (!lookupDoc.exists) {
-        throw new Error("Trip not found");
-      }
-      const { userId: lookedUpUserId } = lookupDoc.data() as { userId: string };
-      tripRef = this.trips.doc(lookedUpUserId).collection("userTrips").doc(id);
-    }
-
-    await tripRef.update({ ...updates, updatedAt: new Date() });
-    const doc = await tripRef.get();
-    return doc.data() as Trip;
+  async getItineraryById(id: string): Promise<Itinerary | undefined> {
+    const doc = await this.itineraries.doc(id).get();
+    return doc.exists ? (doc.data() as Itinerary) : undefined;
   }
 
-  async deleteTrip(id: string): Promise<boolean> {
-    const lookupDoc = await this.tripLookups.doc(id).get();
-    if (lookupDoc.exists) {
-      const { userId } = lookupDoc.data() as { userId: string };
-      await this.trips.doc(userId).collection("userTrips").doc(id).delete();
-      await this.tripLookups.doc(id).delete();
-    }
-    return true;
+  async getUserItineraries(userId: string): Promise<Itinerary[]> {
+    const userIdToQuery = userId === "undefined" ? "anonymous" : userId;
+    const snapshot = await this.itineraries
+      .where("userId", "==", userIdToQuery)
+      .get();
+    return snapshot.docs.map((doc) => doc.data() as Itinerary);
   }
+
+  // Trip methods
+  // async getTrip(id: string, userId?: string): Promise<Trip | undefined> {
+  //   if (userId) {
+  //     const tripDoc = await this.trips
+  //       .doc(userId)
+  //       .collection("userTrips")
+  //       .doc(id)
+  //       .get();
+  //     return tripDoc.exists ? (tripDoc.data() as Trip) : undefined;
+  //   } else {
+  //     const lookupDoc = await this.tripLookups.doc(id).get();
+  //     if (!lookupDoc.exists) {
+  //       return undefined;
+  //     }
+  //     const { userId } = lookupDoc.data() as { userId: string };
+  //     const tripDoc = await this.trips
+  //       .doc(userId)
+  //       .collection("userTrips")
+  //       .doc(id)
+  //       .get();
+  //     return tripDoc.exists ? (tripDoc.data() as Trip) : undefined;
+  //   }
+  // }
+
+  // async getTripsByUser(userId: string): Promise<Trip[]> {
+  //   const userIdToQuery = userId === "undefined" ? "anonymous" : userId;
+  //   const snapshot = await this.trips
+  //     .doc(userIdToQuery)
+  //     .collection("userTrips")
+  //     .get();
+  //   return snapshot.docs.map((doc) => doc.data() as Trip);
+  // }
+
+  // async createTrip(insertTrip: Omit<Trip, "id">): Promise<Trip> {
+  //   const tripCollection = this.trips
+  //     .doc(insertTrip.userId)
+  //     .collection("userTrips");
+  //   const newTripRef = tripCollection.doc();
+  //   const trip: Trip = {
+  //     ...insertTrip,
+  //     userId: insertTrip.userId,
+  //     id: newTripRef.id,
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //     status: insertTrip.status,
+  //     groupSize: insertTrip.groupSize || null,
+  //     accommodation: insertTrip.accommodation || null,
+  //     transport: insertTrip.transport || null,
+  //     itinerary: insertTrip.itinerary || null,
+  //     costBreakdown: insertTrip.costBreakdown || null,
+  //     destinationLatLng: insertTrip.destinationLatLng ?? null,
+  //   };
+  //   await newTripRef.set(trip);
+  //   await this.tripLookups
+  //     .doc(newTripRef.id)
+  //     .set({ userId: insertTrip.userId });
+  //   return trip;
+  // }
+
+  // async updateTrip(
+  //   id: string,
+  //   updates: Partial<Trip>,
+  //   userId?: string
+  // ): Promise<Trip> {
+  //   let tripRef;
+  //   if (userId) {
+  //     tripRef = this.trips.doc(userId).collection("userTrips").doc(id);
+  //   } else {
+  //     const lookupDoc = await this.tripLookups.doc(id).get();
+  //     if (!lookupDoc.exists) {
+  //       throw new Error("Trip not found");
+  //     }
+  //     const { userId: lookedUpUserId } = lookupDoc.data() as { userId: string };
+  //     tripRef = this.trips.doc(lookedUpUserId).collection("userTrips").doc(id);
+  //   }
+
+  //   await tripRef.update({ ...updates, updatedAt: new Date() });
+  //   const doc = await tripRef.get();
+  //   return doc.data() as Trip;
+  // }
+
+  // async deleteTrip(id: string): Promise<boolean> {
+  //   const lookupDoc = await this.tripLookups.doc(id).get();
+  //   if (lookupDoc.exists) {
+  //     const { userId } = lookupDoc.data() as { userId: string };
+  //     await this.trips.doc(userId).collection("userTrips").doc(id).delete();
+  //     await this.tripLookups.doc(id).delete();
+  //   }
+  //   return true;
+  // }
 
   // Destination methods
+
   async getDestination(id: string): Promise<Destination | undefined> {
     const doc = await this.destinations.doc(id).get();
     return doc.exists ? (doc.data() as Destination) : undefined;

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { type Trip } from "@shared/schema";
+import { type Itinerary } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   MapPin,
@@ -23,9 +23,9 @@ import { Badge } from "@/components/ui/badge";
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
-async function fetchTrips(userId: string | undefined): Promise<Trip[]> {
+async function fetchItineraries(userId: string | undefined): Promise<Itinerary[]> {
   if (!userId) return [];
-  const response: ApiResponse<Trip[]> = await apiClient.get(`/api/trips/${userId}`);
+  const response: ApiResponse<Itinerary[]> = await apiClient.get(`/api/users/${userId}/itineraries`);
   return response.data || [];
 }
 
@@ -86,9 +86,9 @@ const DashboardSkeleton = () => (
 export default function Dashboard() {
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
-  const { data: trips, isLoading } = useQuery({
-    queryKey: ["trips", user?.uid],
-    queryFn: () => fetchTrips(user?.uid),
+  const { data: itineraries, isLoading } = useQuery({
+    queryKey: ["itineraries", user?.uid],
+    queryFn: () => fetchItineraries(user?.uid),
     enabled: !!user,
   });
 
@@ -127,7 +127,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold">{trips?.length || 0}</p>
+                  <p className="text-2xl font-bold">{itineraries?.length || 0}</p>
                   <p className="text-sm text-muted-foreground">{t("trips_planned")}</p>
                 </CardContent>
               </Card>
@@ -137,7 +137,7 @@ export default function Dashboard() {
                     <Wallet className="h-5 w-5 mr-2 text-muted-foreground" />
                     <p className="text-2xl font-bold">
                       {formatCurrency(
-                        trips?.reduce((acc, trip) => acc + (trip.budget || 0), 0) || 0
+                        itineraries?.reduce((acc, trip) => acc + (trip.budget || 0), 0) || 0
                       )}
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-center">
                      <Globe className="h-5 w-5 mr-2 text-muted-foreground" />
                     <p className="text-2xl font-bold">
-                      {Array.from(new Set(trips?.map(t => t.destination) || [])).length}
+                      {Array.from(new Set(itineraries?.map(t => t.destination) || [])).length}
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">{t("destinations")}</p>
@@ -160,7 +160,7 @@ export default function Dashboard() {
             {/* 4. Past Adventures & History */}
             <div>
               <h2 className="text-2xl font-bold mb-4">{t("my_trips")}</h2>
-              {!trips || trips.length === 0 ? (
+              {!itineraries || itineraries.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="p-8 text-center">
                     <p className="text-muted-foreground">{t("no_trips")}</p>
@@ -169,27 +169,27 @@ export default function Dashboard() {
               ) : (
                 <div className="relative">
                   <div className="flex space-x-6 overflow-x-auto pb-4 -mb-4">
-                    {trips.map((trip) => (
-                      <div key={trip.id} className="flex-shrink-0 w-full sm:w-[calc(50%-0.75rem)]">
+                    {itineraries.map((itinerary) => (
+                      <div key={itinerary.id} className="flex-shrink-0 w-full sm:w-[calc(50%-0.75rem)]">
                         <Card className="hover:shadow-lg transition-shadow duration-300 group h-full">
-                          <Link href={`/itinerary/${trip.id}`} className="block h-full flex flex-col">
+                          <Link href={`/itinerary/${itinerary.id}`} className="block h-full flex flex-col">
                             <div className="h-40 bg-gradient-to-br from-muted to-muted/50 rounded-t-lg flex items-center justify-center overflow-hidden">
                               <MapPin className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                             <CardContent className="p-4 flex-grow flex flex-col justify-between">
                               <div>
-                                <h3 className="font-semibold text-foreground mb-2 truncate" data-testid={`text-trip-title-${trip.id}`}>
-                                  {trip.title}
+                                <h3 className="font-semibold text-foreground mb-2 truncate" data-testid={`text-trip-title-${itinerary.id}`}>
+                                  {itinerary.title}
                                 </h3>
-                                <p className="text-sm text-muted-foreground mb-3">{trip.destination}</p>
+                                <p className="text-sm text-muted-foreground mb-3">{itinerary.destination.name}</p>
                               </div>
                               <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
                                 <div className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
-                                  <span>{trip.startDate}</span>
+                                  <span>{itinerary.startDate}</span>
                                 </div>
-                                <Badge variant={trip.status === "confirmed" ? "default" : "secondary"}>
-                                  {t(trip.status || "draft")}
+                                <Badge variant={itinerary.status === "confirmed" ? "default" : "secondary"}>
+                                  {t(itinerary.status)}
                                 </Badge>
                               </div>
                             </CardContent>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, DollarSign, Bed, Utensils, TramFront, Ticket, Wand2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Trip } from '@shared/schema';
+import { Itinerary } from '@shared/schema';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
@@ -15,7 +15,7 @@ import { t } from "@/lib/translation";
 interface CostBreakdownPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  itinerary: Trip;
+  itinerary: Itinerary;
 }
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE'];
