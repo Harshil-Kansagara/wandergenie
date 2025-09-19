@@ -7,21 +7,23 @@ import { useTranslation } from "@/hooks/use-translation";
 
 interface LayoutProps {
   children: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, actions }: Readonly<LayoutProps>) {
   const { user, signOut, isSignInOpen, setIsSignInOpen } = useAuth();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        user={user} 
-        onSignOut={signOut} 
-        onSignIn={() => setIsSignInOpen(true)} 
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <Header
+        user={user}
+        onSignOut={signOut}
+        onSignIn={() => setIsSignInOpen(true)}
+        actions={actions}
       />
-      <main>{children}</main>
+      <main className="flex-grow overflow-y-auto">{children}</main>
       <Dialog open={isSignInOpen} onOpenChange={setIsSignInOpen}>
         <DialogContent>
           <DialogHeader>

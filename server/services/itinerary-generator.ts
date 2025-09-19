@@ -7,6 +7,7 @@ import { constructDayPrompt } from "./prompt-generator";
 import { parseItineraryDay } from "./itinerary-parser";
 import { enrichItineraryDay } from "./data-enrichment";
 import { AppError } from "../middlewares/errorHandler";
+import { Translate } from "@google-cloud/translate/build/src/v2";
 
 /**
  * Generates and enriches the itinerary for a single day.
@@ -58,7 +59,7 @@ async function generateSingleDay(
       model: "gemini-1.5-flash",
       config: {
         systemInstruction:
-          "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice.",
+          "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice. Your primary goal is to create a detailed, accurate, and practical travel itinerary that STRICTLY adheres to the provided budget. Always prioritize cost-effective options.",
         responseMimeType: "application/json",
       },
       contents: prompt,
@@ -199,10 +200,24 @@ export async function generateItineraryFromData(
     0
   );
 
+  let tripTitle = `A ${persona.name}'s trip to ${planningData.destination}`;
+  if (planningData.language && planningData.language !== "en") {
+    try {
+      const cloudTranslationApiKey = process.env.CLOUD_TRANSLATION_API_KEY;
+      if (cloudTranslationApiKey) {
+        const translate = new Translate({ key: cloudTranslationApiKey });
+        const [translation] = await translate.translate(tripTitle, planningData.language);
+        tripTitle = translation;
+      }
+    } catch (e) {
+      console.error("Failed to translate trip title, falling back to English.", e);
+    }
+  }
+
   return {
     ...planningData,
-    title: `A ${persona.name}'s trip to ${planningData.destination}`,
-    persona,
+    title: tripTitle,
+    persona, // persona is already part of planningData, but let's keep it for now.
     costBreakdown: {
       ...costBreakdown,
       total: totalCost.toFixed(0),

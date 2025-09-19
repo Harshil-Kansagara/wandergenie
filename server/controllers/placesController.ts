@@ -39,19 +39,21 @@ export const getPlaceDetails = async (req: Request, res: Response) => {
   if (!placeId) {
     throw new AppError("Place ID is required", 400);
   }
+  const langHeader = req.headers["accept-language"] || "en";
+  const languageCode = langHeader.split(",")[0].split("-")[0];
 
-  const placeDetails = await fetchPlaceDetails(placeId);
+  const placeDetails = await fetchPlaceDetails(placeId,languageCode);
   res.json(ApiResponse.success(placeDetails));
 };
 
 /**
- * Calculates directions between an origin, a destination, and optional intermediate waypoints.
+ * Calculates directions between an origin, a destination, and optional
  * Acts as a proxy to the Google Routes API.
  * @param req The Express request object, containing `origin`, `destination`, and optional `intermediates` in the body.
  * @param res The Express response object.
  */
 export const getDirections = async (req: Request, res: Response) => {
-  const { origin, destination, intermediates } = req.body;
+  const { origin, destination } = req.body;
 
   if (!origin || !destination) {
     throw new AppError(
@@ -60,6 +62,9 @@ export const getDirections = async (req: Request, res: Response) => {
     );
   }
 
-  const directions = await fetchDirections(origin, destination, intermediates);
+  const langHeader = req.headers["accept-language"] || "en";
+  const languageCode = langHeader.split(",")[0].split("-")[0];
+
+  const directions = await fetchDirections(origin, destination,languageCode);
   res.json(ApiResponse.success(directions));
 };

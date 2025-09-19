@@ -55,7 +55,7 @@ export function constructDayPrompt(
   const outputInstructions = `
   First, write a single, captivating narrative for the day, capturing the adventurous spirit of the itinerary. Make the tone of the narrative consistent with the user's persona and the day's module theme. The narrative should act as a continuous story, guiding the user through their day.
 
-  After the narrative, provide the structured data for the itinerary as a single JSON object. The top-level key should be "Day${dayNumber}". Inside this object, create nested objects for "Morning", "Afternoon", and "Evening". Each of these nested objects should contain the following keys: "activityName", "description", "approximateCost", "suggestedDuration", and "category". All text values in the JSON object MUST be in ${tripDetails.language}.
+  After the narrative, provide the structured data for the itinerary as a single JSON object. The top-level key should be "Day${dayNumber}". Inside this object, create nested objects for the time of day. The keys for these nested objects MUST be the translation of "Morning", "Afternoon", and "Evening" into ${tripDetails.language}. Each of these nested objects should contain the following keys: "activityName", "description", "approximateCost", "suggestedDuration", and "category". "timeOfDay" MUST be in ${tripDetails.language}. All text values in the JSON object MUST be in ${tripDetails.language}.
 
   The "category" must be one of the following strings: "Food", "Activity", "Transport", "Accommodation", "Miscellaneous".
   

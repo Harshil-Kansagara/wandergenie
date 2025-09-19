@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ApiClient } from "@/lib/api-client";
 import { ItineraryDisplaySkeleton } from "@/components/itinerary-display-skeleton";
+import { useAuth } from "@/hooks/use-auth.tsx";
+
 
 const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
@@ -19,27 +21,25 @@ const ItineraryPageSkeleton = () => (
   </div>
 );
 
-async function fetchTrip(tripId: string): Promise<{ success: boolean, data: Trip }> {
-    // This is a mock implementation. You would replace this with a real API call.
-    // For example: return apiClient.get(`/api/trips/${tripId}`);
-    // For now, we'll simulate a delay and return the data from history state if available.
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const tripFromState = (history.state as { trip?: Trip })?.trip;
-    if (tripFromState && (tripFromState.id === tripId || tripId === 'view')) { // 'view' for the form submission case
-        return { success: true, data: tripFromState };
-    }
-    throw new Error("Trip not found");
+async function fetchTrip(tripId: string, userId: string): Promise<{ success: boolean, data: Trip }> {
+  // 1. fetch the trip from the API.
+  // This happens when clicking a link from the dashboard.
+  const response = await apiClient.get(`/api/trips/${userId}/${tripId}`);
+  if (!response.success) throw new Error(response.error || "Trip not found");
+  return response;
 }
 
 export default function ItineraryPage() {
   const { t } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
   const [, params] = useRoute("/itinerary/:id");
   const tripId = params?.id;
 
   const { data: result, isLoading, error } = useQuery({
-    queryKey: ["trip", tripId],
-    queryFn: () => fetchTrip(tripId!),
-    enabled: !!tripId,
+    // Add user.uid to the queryKey to refetch if the user changes
+    queryKey: ["trip", tripId, user?.uid],
+    queryFn: () => fetchTrip(tripId!, user?.uid || 'anonymous'),
+    enabled: !!tripId && !authLoading, // Run as long as we have a tripId and auth state is resolved
   });
 
   if (isLoading) {

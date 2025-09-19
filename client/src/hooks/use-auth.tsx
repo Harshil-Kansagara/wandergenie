@@ -2,6 +2,9 @@ import { useEffect, useState, createContext, useContext, ReactNode } from "react
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/firebase";
 import { useLocation } from "wouter";
+import { Trip } from "@shared/schema";
+
+const TEMP_TRIP_STORAGE_KEY = 'temp-trip-for-save';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +12,8 @@ interface AuthContextType {
   signOut: () => void;
   isSignInOpen: boolean;
   setIsSignInOpen: (isOpen: boolean) => void;
+  saveTripTemporarily: (trip: Trip) => void;
+  getAndClearTemporaryTrip: () => Trip | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,7 +40,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const value = { user, loading, signOut, isSignInOpen, setIsSignInOpen };
+  const saveTripTemporarily = (trip: Trip) => {
+    localStorage.setItem(TEMP_TRIP_STORAGE_KEY, JSON.stringify(trip));
+  };
+
+  const getAndClearTemporaryTrip = (): Trip | null => {
+    const tripJson = localStorage.getItem(TEMP_TRIP_STORAGE_KEY);
+    if (tripJson) {
+      localStorage.removeItem(TEMP_TRIP_STORAGE_KEY);
+      try {
+        return JSON.parse(tripJson);
+      } catch (e) {
+        console.error("Error parsing temporary trip JSON:", e);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const value = { user, loading, signOut, isSignInOpen, setIsSignInOpen, saveTripTemporarily, getAndClearTemporaryTrip };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

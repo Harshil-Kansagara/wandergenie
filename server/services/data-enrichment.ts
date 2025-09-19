@@ -112,15 +112,17 @@ async function getPlaceDetails(
   const fieldMask = fields.join(",");
 
   try {
-    const response = await axios.get(`${PLACES_API_BASE_URL}/${placeId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
-        "X-Goog-Language-Code": languageCode,
-        "X-Goog-FieldMask": fieldMask,
-      },
-    });
-    const { userRatingCount, ...rest } = response.data;
+    const response = await axios.get(
+      `${PLACES_API_BASE_URL}/${placeId}?languageCode=${languageCode}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+          "X-Goog-FieldMask": fieldMask,
+        },
+      }
+    );
+    const { userRatingCount = null, ...rest } = response.data;
     return { ...rest, userRatingsTotal: userRatingCount };
   } catch (error) {
     console.error(`Error fetching details for place ID "${placeId}":`, error);
@@ -164,7 +166,10 @@ async function getTravelTime(
 
     const route = response.data.routes?.[0];
     if (route) {
-      return { duration: route.duration, distanceMeters: route.distanceMeters };
+      return {
+        duration: route.duration,
+        distanceMeters: route.distanceMeters ?? null,
+      };
     }
     return null;
   } catch (error) {

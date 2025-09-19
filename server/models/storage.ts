@@ -1,10 +1,8 @@
 import {
   type User,
   // type InsertUser,
-  type Trip,
-  // type InsertTrip,
+  Trip,
   type Destination,
-  // type InsertDestination,
   // type Booking,
   // type InsertBooking,
 } from "@shared/schema";
@@ -28,7 +26,7 @@ export interface IStorage {
   // Trip methods
   getTrip(id: string, userId?: string): Promise<Trip | undefined>;
   getTripsByUser(userId: string): Promise<Trip[]>;
-  // createTrip(trip: InsertTrip): Promise<Trip>;
+
   updateTrip(
     id: string,
     updates: Partial<Trip>,
@@ -137,29 +135,31 @@ export class FirebaseStorage implements IStorage {
     return snapshot.docs.map((doc) => doc.data() as Trip);
   }
 
-  // async createTrip(insertTrip: InsertTrip): Promise<Trip> {
-  //   const userId =
-  //     insertTrip.userId === "undefined" ? "anonymous" : insertTrip.userId;
-  //   const tripCollection = this.trips.doc(userId).collection("userTrips");
-  //   const newTripRef = tripCollection.doc();
-  //   const trip: Trip = {
-  //     ...insertTrip,
-  //     userId: userId,
-  //     id: newTripRef.id,
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //     status: insertTrip.status || "draft",
-  //     groupSize: insertTrip.groupSize || null,
-  //     accommodation: insertTrip.accommodation || null,
-  //     transport: insertTrip.transport || null,
-  //     itinerary: insertTrip.itinerary || null,
-  //     costBreakdown: insertTrip.costBreakdown || null,
-  //     destinationLatLng: insertTrip.destinationLatLng ?? null,
-  //   };
-  //   await newTripRef.set(trip);
-  //   await this.tripLookups.doc(newTripRef.id).set({ userId: userId });
-  //   return trip;
-  // }
+  async createTrip(insertTrip: Omit<Trip, "id">): Promise<Trip> {
+    const tripCollection = this.trips
+      .doc(insertTrip.userId)
+      .collection("userTrips");
+    const newTripRef = tripCollection.doc();
+    const trip: Trip = {
+      ...insertTrip,
+      userId: insertTrip.userId,
+      id: newTripRef.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: insertTrip.status || "draft",
+      groupSize: insertTrip.groupSize || null,
+      accommodation: insertTrip.accommodation || null,
+      transport: insertTrip.transport || null,
+      itinerary: insertTrip.itinerary || null,
+      costBreakdown: insertTrip.costBreakdown || null,
+      destinationLatLng: insertTrip.destinationLatLng ?? null,
+    };
+    await newTripRef.set(trip);
+    await this.tripLookups
+      .doc(newTripRef.id)
+      .set({ userId: insertTrip.userId });
+    return trip;
+  }
 
   async updateTrip(
     id: string,

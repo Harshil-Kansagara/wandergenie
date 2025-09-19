@@ -67,9 +67,9 @@ export async function getAutocompleteSuggestions(
  * @param placeId The Google Place ID.
  * @returns A promise that resolves to the formatted place details.
  */
-export async function fetchPlaceDetails(placeId: string) {
+export async function fetchPlaceDetails(placeId: string,   languageCode: string) {
   const googlePlacesApiKey = getGoogleMapApiKey();
-  const response = await axios.get(`${GOOGLE_PLACES_API_URL}/${placeId}`, {
+  const response = await axios.get(`${GOOGLE_PLACES_API_URL}/${placeId}?languageCode=`+languageCode, {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": googlePlacesApiKey,
@@ -92,28 +92,24 @@ export async function fetchPlaceDetails(placeId: string) {
 }
 
 /**
- * Calculates directions between an origin, a destination, and optional intermediate waypoints.
+ * Calculates directions between an origin, a destination
  * @param origin The starting point lat/lng.
  * @param destination The ending point lat/lng.
- * @param intermediates An array of intermediate lat/lng waypoints.
  * @returns A promise that resolves to the route data from Google.
  */
 export async function fetchDirections(
   origin: { lat: number; lng: number },
-  destination: { lat: number; lng: number },
-  intermediates: { lat: number; lng: number }[]
+  destination: { lat: number; lng: number },  languageCode: string
 ) {
   const googleMapsApiKey = getGoogleMapApiKey();
 
   const requestBody = {
     origin: { location: { latLng: origin } },
     destination: { location: { latLng: destination } },
-    intermediates:
-      intermediates?.map((loc: any) => ({ location: { latLng: loc } })) || [],
     travelMode: "DRIVE",
     routingPreference: "TRAFFIC_AWARE",
     computeAlternativeRoutes: false,
-    languageCode: "en-US",
+    languageCode: languageCode,
     units: "METRIC",
   };
 
