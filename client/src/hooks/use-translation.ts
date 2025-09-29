@@ -36,12 +36,12 @@ export function useTranslation() {
     return "en";
   });
 
-  const { isLoading, error } = useQuery({
+  const { isLoading, error, isSuccess } = useQuery({
     queryKey: ["translations", language],
     queryFn: () => translationService.setLanguage(language),
-    // Keep translations fresh, but don't refetcivelh too aggressy
+    // Keep translations fresh, but don't refetch too aggressively
     staleTime: 60 * 60 * 1000, // 1 hour
-    enabled: true, 
+    enabled: true,
   });
 
   const setLanguage = useCallback(
@@ -109,7 +109,7 @@ export function useTranslation() {
 
   return {
     language: language,
-    isLoading,
+    isLoading: isLoading || !isSuccess, // Report loading until the first fetch is successful
     error: error?.message ?? null,
     direction: translationService.getLanguageDirection(language),
     setLanguage,

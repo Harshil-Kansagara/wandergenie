@@ -24,25 +24,6 @@ export class TranslationService {
   private translations: TranslationStrings = {};
   private fallbackTranslations: TranslationStrings = {};
 
-  /**
-   * Initializes the service with the user's preferred or detected language.
-   * This should be called once when the application loads.
-   */
-  async init(): Promise<void> {
-    await this.loadTranslations("en", true);
-    const savedLanguage = localStorage.getItem("preferred_language");
-    if (savedLanguage && this.isLanguageSupported(savedLanguage)) {
-      await this.setLanguage(savedLanguage);
-    } else {
-      const browserLang = navigator.language.split("-")[0];
-      if (this.isLanguageSupported(browserLang)) {
-        await this.setLanguage(browserLang);
-      } else {
-        await this.setLanguage("en");
-      }
-    }
-  }
-
   isLanguageSupported(languageCode: string): boolean {
     return SUPPORTED_LANGUAGES.some((lang) => lang.code === languageCode);
   }
@@ -52,50 +33,24 @@ export class TranslationService {
       console.warn(
         `Language ${languageCode} is not supported. Falling back to English.`
       );
-      return this.fallbackTranslations;
+      languageCode = "en";
     }
 
     this.currentLanguage = languageCode;
 
-    if (languageCode === "en") {
-      this.translations = this.fallbackTranslations;
-      return this.translations;
-    }
-
-    // Check cache first
-    if (translationCache.has(languageCode)) {
-      this.translations = translationCache.get(languageCode)!;
-      return this.translations;
-    }
-
     try {
-      // Try to load translations from API or generate them
+      // Ensure English (fallback) is always loaded
+      if (!translationCache.has("en")) {
+        const fallback = await this.loadTranslations("en");
+        this.fallbackTranslations = fallback;
+        translationCache.set("en", fallback);
+      }
       const translations = await this.loadTranslations(languageCode);
-      this.translations = {
-        ...this.fallbackTranslations,
-        ...translations,
-      };
+      this.translations = { ...this.fallbackTranslations, ...translations };
       translationCache.set(languageCode, this.translations);
-      // Cache in localStorage for offline use
-      localStorage.setItem(
-        `translations_${languageCode}`,
-        JSON.stringify(this.translations)
-      );
     } catch (error) {
       console.error(`Failed to load translations for ${languageCode}:`, error);
-
-      // Try to load from localStorage cache
-      try {
-        const cached = localStorage.getItem(`translations_${languageCode}`);
-        if (cached) {
-          this.translations = JSON.parse(cached);
-          translationCache.set(languageCode, this.translations);
-        }
-      } catch (cacheError) {
-        console.error("Failed to load cached translations:", cacheError);
-        // Fall back to English
-        this.translations = this.fallbackTranslations;
-      }
+      this.translations = this.fallbackTranslations;
     }
 
     return this.translations;
@@ -116,28 +71,20 @@ export class TranslationService {
   /**
    * Loads translations for a given language from a JSON file.
    * @param languageCode The language code (e.g., "es", "fr").
-   * @param isFallback A flag to determine if this is the fallback language.
    * @returns A promise that resolves to the translation strings.
    */
-  async loadTranslations(
-    languageCode: string,
-    isFallback: boolean = false
-  ): Promise<TranslationStrings> {
+  async loadTranslations(languageCode: string): Promise<TranslationStrings> {
+    if (translationCache.has(languageCode)) {
+      return translationCache.get(languageCode)!;
+    }
     try {
-      // Vite's dynamic import can't handle fully dynamic paths with aliases.
-      // We use `import.meta.glob` to make the paths discoverable at build time.
-      // The path must be relative to the project root.
       const localeModules = import.meta.glob(
         "/src/assets/i18n/*.json"
       ) as Record<string, () => Promise<any>>;
       const path = `/src/assets/i18n/${languageCode}.json`;
       const importFn = localeModules[path];
-      const translationsModule = await importFn();
-      const translations = translationsModule.default || translationsModule;
-      if (isFallback) {
-        this.fallbackTranslations = translations.default || translations;
-      }
-      return translations.default || translations;
+      const mod = await importFn();
+      return mod.default || mod;
     } catch (error) {
       console.error(`Failed to load translations for ${languageCode}:`, error);
       return {};
@@ -214,9 +161,4 @@ export const translationService = new TranslationService();
 // Utility function for quick translations
 export function t(key: string, params?: { [key: string]: string }): string {
   return translationService.translate(key, params);
-}
-
-// Initialize the service when the module is loaded
-if (typeof window !== "undefined") {
-  translationService.init();
 }
