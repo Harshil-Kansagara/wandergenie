@@ -61,7 +61,7 @@ async function generateSingleDay(
     console.log(`-------------------------`);
 
     const response = await genai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash-lite",
       config: {
         systemInstruction:
           "You are a professional travel planner with extensive knowledge of global destinations, local customs, transportation, accommodations, and activities. Provide detailed, accurate, and practical travel advice. Your primary goal is to create a detailed, accurate, and practical travel itinerary that STRICTLY adheres to the provided budget. Always prioritize cost-effective options.",
