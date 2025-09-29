@@ -1,6 +1,6 @@
 import { db } from "../config/firebase";
 import { QuizOption, QuizQuestion } from "@shared/schema";
-import { Translate } from "@google-cloud/translate/build/src/v2";
+import { getTranslateClient } from "../utils/google-cloud-wrapper.js";
 import { AppError } from "../middlewares/errorHandler";
 
 /**
@@ -107,7 +107,7 @@ export async function getTranslatedQuizQuestions(
       500
     );
   }
-  const translate = new Translate({ key: cloudTranslationApiKey });
+  const translate = await getTranslateClient();
 
   const questionsSnapshot = await db.collection("quiz_questions").get();
   if (questionsSnapshot.empty) {

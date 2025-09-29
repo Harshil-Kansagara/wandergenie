@@ -12,7 +12,7 @@ import { constructDayPrompt } from "./prompt-generator";
 import { parseItineraryDay } from "./itinerary-parser";
 import { enrichItineraryDay } from "./data-enrichment";
 import { AppError } from "../middlewares/errorHandler";
-import { Translate } from "@google-cloud/translate/build/src/v2";
+import { getTranslateClient } from "../utils/google-cloud-wrapper.js";
 
 /**
  * Generates and enriches the itinerary for a single day.
@@ -137,7 +137,7 @@ export async function generateItineraryFromData(
     | "updatedAt"
   >
 > {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY?.replace(/"/g, "");
   if (!apiKey) {
     throw new AppError("GEMINI_API_KEY environment variable not set.", 500);
   }
@@ -221,7 +221,7 @@ export async function generateItineraryFromData(
     try {
       const cloudTranslationApiKey = process.env.CLOUD_TRANSLATION_API_KEY;
       if (cloudTranslationApiKey) {
-        const translate = new Translate({ key: cloudTranslationApiKey });
+        const translate = await getTranslateClient();
         const [translation] = await translate.translate(
           tripTitle,
           planningData.language

@@ -26,7 +26,7 @@ export async function geocodeDestination(
       {
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY.replace(/"/g, ""),
           "X-Goog-FieldMask": "places.location",
         },
       }

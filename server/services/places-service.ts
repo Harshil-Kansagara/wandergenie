@@ -15,7 +15,7 @@ function getGoogleMapApiKey(): string {
     console.error("GOOGLE_MAPS_API_KEY is not set.");
     throw new AppError("Server configuration error.", 500);
   }
-  return apiKey;
+  return apiKey.replace(/"/g, "");
 }
 
 /**
@@ -67,15 +67,18 @@ export async function getAutocompleteSuggestions(
  * @param placeId The Google Place ID.
  * @returns A promise that resolves to the formatted place details.
  */
-export async function fetchPlaceDetails(placeId: string,   languageCode: string) {
+export async function fetchPlaceDetails(placeId: string, languageCode: string) {
   const googlePlacesApiKey = getGoogleMapApiKey();
-  const response = await axios.get(`${GOOGLE_PLACES_API_URL}/${placeId}?languageCode=`+languageCode, {
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": googlePlacesApiKey,
-      "X-Goog-FieldMask": "location,formattedAddress,displayName.text",
-    },
-  });
+  const response = await axios.get(
+    `${GOOGLE_PLACES_API_URL}/${placeId}?languageCode=` + languageCode,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": googlePlacesApiKey,
+        "X-Goog-FieldMask": "location,formattedAddress,displayName.text",
+      },
+    }
+  );
 
   const placeDetails = response.data;
 
@@ -99,7 +102,8 @@ export async function fetchPlaceDetails(placeId: string,   languageCode: string)
  */
 export async function fetchDirections(
   origin: { lat: number; lng: number },
-  destination: { lat: number; lng: number },  languageCode: string
+  destination: { lat: number; lng: number },
+  languageCode: string
 ) {
   const googleMapsApiKey = getGoogleMapApiKey();
 

@@ -5,6 +5,8 @@ import {
   ItineraryDay,
   TripPlanningRequest,
 } from "@shared/schema";
+import { AppError } from "server/middlewares/errorHandler";
+import { geocodeDestination } from "./geocoding-service";
 
 const PLACES_API_BASE_URL = "https://places.googleapis.com/v1/places";
 const DIRECTIONS_API_URL =
@@ -17,14 +19,6 @@ async function findPlaceId(
   activity: Activity,
   planningData: TripPlanningRequest
 ): Promise<string | null> {
-  const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-  if (!GOOGLE_MAPS_API_KEY) {
-    console.warn(
-      "GOOGLE_MAPS_API_KEY not set. Skipping place search. Returning mock data."
-    );
-    return `mock_place_id_for_${activity.activityName.replace(/\s+/g, "_")}`;
-  }
-
   const requestBody: {
     textQuery: string;
     locationBias?: object;
@@ -34,18 +28,25 @@ async function findPlaceId(
     languageCode: planningData.language,
   };
 
-  // Bias search results towards the destination's location for better accuracy
-  if (planningData.destinationLatLng) {
-    requestBody.locationBias = {
-      circle: {
-        center: {
-          latitude: planningData.destinationLatLng.lat,
-          longitude: planningData.destinationLatLng.lng,
-        },
-        radius: 50000.0, // 50km radius
-      },
-    };
+  // 2. Geocode destination if lat/lng is missing
+  const latLng = await geocodeDestination(planningData.destination);
+  if (!latLng) {
+    throw new AppError(
+      `Could not find coordinates for destination: "${planningData.destination}"`,
+      400
+    );
   }
+
+  // Bias search results towards the destination's location for better accuracy
+  requestBody.locationBias = {
+    circle: {
+      center: {
+        latitude: latLng.lat,
+        longitude: latLng.lng,
+      },
+      radius: 50000.0, // 50km radius
+    },
+  };
 
   // Attempt 1: Search with a more specific query
   requestBody.textQuery = `${activity.activityName}, ${planningData.destination}`;
@@ -65,6 +66,14 @@ async function findPlaceId(
 
 async function executePlaceSearch(requestBody: object): Promise<string | null> {
   const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+  if (!GOOGLE_MAPS_API_KEY) {
+    console.warn("GOOGLE_MAPS_API_KEY not set. Skipping place details.");
+    throw new AppError(
+      "Google Maps API key is not configured on the server.",
+      500
+    );
+  }
+
   try {
     const response = await axios.post(
       `${PLACES_API_BASE_URL}:searchText`,
@@ -72,7 +81,7 @@ async function executePlaceSearch(requestBody: object): Promise<string | null> {
       {
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY!,
+          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY.replace(/"/g, ""),
           "X-Goog-FieldMask": "places.id",
         },
       }
@@ -97,7 +106,10 @@ async function getPlaceDetails(
   const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
   if (!GOOGLE_MAPS_API_KEY) {
     console.warn("GOOGLE_MAPS_API_KEY not set. Skipping place details.");
-    return {};
+    throw new AppError(
+      "Google Maps API key is not configured on the server.",
+      500
+    );
   }
 
   const fields = [
@@ -117,7 +129,7 @@ async function getPlaceDetails(
       {
         headers: {
           "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+          "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY.replace(/"/g, ""),
           "X-Goog-FieldMask": fieldMask,
         },
       }
@@ -159,7 +171,7 @@ async function getTravelTime(
     const response = await axios.post(DIRECTIONS_API_URL, requestBody, {
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+        "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY.replace(/"/g, ""),
         "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
       },
     });

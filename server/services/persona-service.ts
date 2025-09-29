@@ -1,6 +1,6 @@
 import { db } from "../config/firebase";
 import { Persona } from "@shared/schema";
-import { Translate } from "@google-cloud/translate/build/src/v2";
+import { getTranslateClient } from "../utils/google-cloud-wrapper.js";
 import { AppError } from "../middlewares/errorHandler";
 
 /**
@@ -18,7 +18,7 @@ export async function getTranslatedPersonas(
       500
     );
   }
-  const translate = new Translate({ key: cloudTranslationApiKey });
+  const translate = await getTranslateClient();
 
   const personasSnapshot = await db.collection("personas").get();
   if (personasSnapshot.empty) {
