@@ -61,47 +61,54 @@ const createTooltipElement = (waypoint: Waypoint) => {
   return element;
 };
 
-class Tooltip extends google.maps.OverlayView {
-  private readonly position: google.maps.LatLng;
-  private readonly content: HTMLElement;
-
-  constructor(position: google.maps.LatLng, content: HTMLElement) {
-    super();
-    this.position = position;
-    this.content = content;
-    this.content.style.position = 'absolute';
-  }
-
-  onAdd() {
-    this.getPanes()!.floatPane.appendChild(this.content);
-  }
-
-  onRemove() {
-    if (this.content.parentElement) {
-      this.content.parentElement.removeChild(this.content);
-    }
-  }
-
-  draw() {
-    const divPosition = this.getProjection().fromLatLngToDivPixel(this.position)!;
-    this.content.style.left = `${divPosition.x + 15}px`;
-    this.content.style.top = `${divPosition.y - 15}px`;
-  }
-}
-
 export default function MapComponent({ destination, waypoints = [], onPinClick, onPinMouseEnter, onPinMouseLeave, className }: Readonly<MapComponentProps>) {
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polylineRef = useRef<google.maps.Polyline | null>(null);
-  const activeTooltip = useRef<Tooltip | null>(null);
+  const TooltipClass = useRef<any>(null);
+  const activeTooltip = useRef<google.maps.OverlayView | null>(null);
 
   useEffect(() => {
     const initMap = () => {
       if (!window.google || !mapRef.current) {
         setTimeout(initMap, 100);
         return;
+      }
+
+      // Define Tooltip class here, where we know `window.google` is available.
+      // We store the class in a ref so it's only defined once.
+      if (!TooltipClass.current) {
+        class Tooltip extends window.google.maps.OverlayView {
+          private readonly position: google.maps.LatLng;
+          private readonly content: HTMLElement;
+
+          constructor(position: google.maps.LatLng, content: HTMLElement) {
+            super();
+            this.position = position;
+            this.content = content;
+            this.content.style.position = 'absolute';
+          }
+
+          onAdd() {
+            this.getPanes()!.floatPane.appendChild(this.content);
+          }
+
+          onRemove() {
+            if (this.content.parentElement) {
+              this.content.parentElement.removeChild(this.content);
+            }
+          }
+
+          draw() {
+            const divPosition = this.getProjection()?.fromLatLngToDivPixel(this.position);
+            if (!divPosition) return;
+            this.content.style.left = `${divPosition.x + 15}px`;
+            this.content.style.top = `${divPosition.y - 15}px`;
+          }
+        }
+        TooltipClass.current = Tooltip;
       }
 
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
@@ -142,7 +149,7 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
   }, [destination, waypoints, onPinClick, onPinMouseEnter, onPinMouseLeave]);
 
   const updateMarkers = () => {
-    if (!mapInstance.current || !window.google?.maps?.marker) return;
+    if (!mapInstance.current || !window.google?.maps?.marker || !TooltipClass.current) return;
 
     const { AdvancedMarkerElement } = window.google.maps.marker;
 
@@ -198,7 +205,7 @@ export default function MapComponent({ destination, waypoints = [], onPinClick, 
             
             activeTooltip.current?.setMap(null);
             const tooltipElement = createTooltipElement(point as Waypoint);
-            activeTooltip.current = new Tooltip(new google.maps.LatLng(position), tooltipElement);
+            activeTooltip.current = new TooltipClass.current(new window.google.maps.LatLng(position), tooltipElement);
             activeTooltip.current.setMap(mapInstance.current);
           });
 
